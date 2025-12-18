@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "meta" SET DEFAULT '{}'::jsonb,
+ALTER COLUMN "updated_at" SET DEFAULT CURRENT_TIMESTAMP;

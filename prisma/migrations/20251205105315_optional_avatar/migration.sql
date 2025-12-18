@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "meta" SET DEFAULT '{}'::jsonb,
+ALTER COLUMN "avatar" DROP NOT NULL,
+ALTER COLUMN "avatar" DROP DEFAULT;

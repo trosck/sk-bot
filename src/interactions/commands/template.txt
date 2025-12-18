@@ -1,0 +1,23 @@
+import type { InteractionHandler } from "./index.js";
+import {
+  InteractionResponseFlags,
+  InteractionResponseType,
+  MessageComponentTypes,
+} from "discord-interactions";
+
+const template: InteractionHandler = async (data, req, res) => {
+  return res.send({
+    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+    data: {
+      flags: InteractionResponseFlags.IS_COMPONENTS_V2,
+      components: [
+        {
+          type: MessageComponentTypes.TEXT_DISPLAY,
+          content: "template",
+        },
+      ],
+    },
+  });
+};
+
+export { template };

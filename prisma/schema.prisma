@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AppConfig {
+  guild_id             String   @id
+  promocats_channel_id String?
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+}
+
+model User {
+  user_id Int @id @default(autoincrement())
+
+  discord_user_id String @unique
+
+  avatar      String?
+  //tag
+  username    String?
+  // guild username
+  nickname    String?
+  // displayed username
+  global_name String?
+  roles       String[]
+
+  total_xp Int @default(0)
+  level    Int @default(0)
+  cookies  Int @default(0)
+
+  voice_chat Int @default(0)
+
+  // moderation
+  banned_at DateTime?
+  notes     String?
+
+  meta Json @default(dbgenerated("'{}'::jsonb"))
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+}
+
+model Level {
+  level_id Int @id @default(autoincrement())
+
+  xp   Int
+  role Role[]
+}
+
+model Role {
+  role_id Int @id @default(autoincrement())
+
+  name     String
+  level    Level? @relation(fields: [level_id], references: [level_id])
+  level_id Int?
+}
+
+model Channel {
+  id             String          @id @unique
+  name           String
+  type           Int
+  scheduledPosts ScheduledPost[]
+}
+
+enum ScheduledPostStatus {
+  SCHEDULED
+  PROCESSING
+  SENT
+  CANCELLED
+  FAILED
+}
+
+model ScheduledPost {
+  id Int @id @default(autoincrement())
+
+  channel    Channel @relation(fields: [channel_id], references: [id])
+  channel_id String
+
+  text  String
+  media String[]
+
+  status ScheduledPostStatus @default(SCHEDULED)
+  error  String?
+
+  scheduled_at DateTime
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+}

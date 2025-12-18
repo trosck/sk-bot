@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
 import { prisma } from "../prisma.js";
+import {
+  createPaginatedQuery,
+  sendPaginatedResponse,
+} from "../helpers/create-paginated-query.js";
 
 export async function createScheduledPost(req: Request, res: Response) {
   const { channel_id, media, scheduled_at, text } = req.body;
@@ -36,12 +40,9 @@ export async function getScheduledPostById(req: Request, res: Response) {
 }
 
 export async function getScheduledPosts(req: Request, res: Response) {
-  const { limit, order, sort, cursor } = req.query;
-
-  const _limit = parseInt(limit as string) || 10;
-
-  const data: any = {
-    select: {
+  const { data, limit } = createPaginatedQuery(
+    req,
+    {
       id: true,
       channel_id: true,
       text: true,
@@ -50,39 +51,13 @@ export async function getScheduledPosts(req: Request, res: Response) {
       error: true,
       scheduled_at: true,
     },
-    take: _limit,
-    orderBy: [
-      {
-        created_at: "asc",
-      },
-    ],
-  };
+    {
+      created_at: "asc",
+    }
+  );
 
-  if (sort) {
-    data.orderBy.unshift({
-      [sort as string]: order || "asc",
-    });
-  }
-
-  if (cursor) {
-    data.skip = 1;
-    data.cursor = {
-      id: +cursor,
-    };
-  }
-
-  const total = await prisma.scheduledPost.count();
-
+  const total = await prisma.user.count();
   const posts = await prisma.scheduledPost.findMany(data);
 
-  let nextCursor = null;
-  if (posts.length >= _limit) {
-    nextCursor = posts.at(-1)?.id;
-  }
-
-  return res.json({
-    data: posts,
-    nextCursor,
-    total,
-  });
+  return sendPaginatedResponse(res, posts, total, limit);
 }

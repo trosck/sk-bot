@@ -8,10 +8,13 @@ datasource db {
 }
 
 model AppConfig {
-  guild_id             String   @id
+  guild_id String @id
+
   promocats_channel_id String?
-  created_at           DateTime @default(now())
-  updated_at           DateTime @updatedAt
+  promocats_post_time  DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model User {

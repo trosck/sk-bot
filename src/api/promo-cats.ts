@@ -1,10 +1,31 @@
 import { Request, Response } from "express";
 import xlsx from "xlsx";
-import { Prisma } from "../../generated/prisma/client.js";
 import { prisma } from "../prisma.js";
+import {
+  createPaginatedQuery,
+  sendPaginatedResponse,
+} from "../helpers/create-paginated-query.js";
 
-export async function getPromoCats(req: Request, res: Response) {
-  const promocodes = await prisma.promoCat.findMany
+export async function getPromoCatsSettings(req: Request, res: Response) {
+  const config = await prisma.appConfig.findFirst();
+
+  return res.json({
+    channel_id: config?.promocats_channel_id ?? null,
+    post_time: config?.promocats_post_time ?? null,
+  });
+}
+
+export async function setPromoCatsSettings(req: Request, res: Response) {
+  const { channel_id, post_time } = req.body;
+
+  await prisma.appConfig.updateMany({
+    data: {
+      promocats_channel_id: channel_id ?? undefined,
+      promocats_post_time: post_time ?? undefined,
+    },
+  });
+
+  return res.json({});
 }
 
 export async function uploadPromoCatPromocodes(req: Request, res: Response) {
@@ -61,4 +82,22 @@ export async function uploadPromoCatPromocodes(req: Request, res: Response) {
   });
 
   return res.json({});
+}
+
+export async function getPromoCats(req: Request, res: Response) {
+  const { data, limit } = createPaginatedQuery(
+    req,
+    {
+      id: true,
+      promocode: true,
+      discount: true,
+      date: true,
+    },
+    { date: "asc" }
+  );
+
+  const total = await prisma.promoCat.count();
+  const promocodes = await prisma.promoCat.findMany(data);
+
+  return sendPaginatedResponse(res, promocodes, total, limit);
 }

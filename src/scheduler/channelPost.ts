@@ -5,18 +5,18 @@ import { prisma } from "../prisma.js";
 /**
  * запрашивать время отложенного поста
  * и делать таймер на это время
- * 
+ *
  * опрос раз в 5 минут
- * 
+ *
  * взяли пост - поставили статус PROCESSING - поставили таймер
- * 
+ *
  * при запуске приложения всем постам со статусом PROCESSING
  * ставить статус SCHEDULED т.к. это значит приложение упало
  * во время обработки. либо ставить таймер на постинг/постить
  * сразу
  */
 
-export async function channelPost() {
+export async function scheduleChannelPost() {
   const posts = await prisma.scheduledPost.findMany({
     select: {
       id: true,

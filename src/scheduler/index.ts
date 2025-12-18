@@ -1,5 +1,10 @@
-import { channelPost } from "./channelPost.js";
+import cron from "node-cron";
+
+import { scheduleChannelPost } from "./channelPost.js";
 
 export function scheduleTasks() {
-  // setInterval(channelPost, 5_000);
+  // every minute
+  cron.schedule("* * * * *", () => {
+    // scheduleChannelPost();
+  });
 }

@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { prisma } from "../prisma.js";
 import { UserXpReward } from "../RewardSystem/UserXpReward.js";
+import {
+  createPaginatedQuery,
+  sendPaginatedResponse,
+} from "../helpers/create-paginated-query.js";
 
 export async function giveUserXP(req: Request, res: Response) {
   const user = await prisma.user.findFirst({
@@ -39,12 +43,9 @@ export async function getUserById(req: Request, res: Response) {
 }
 
 export async function getUsers(req: Request, res: Response) {
-  const { limit, order, sort, cursor } = req.query;
-
-  const _limit = parseInt(limit as string) || 10;
-
-  const data: any = {
-    select: {
+  const { data, limit } = createPaginatedQuery(
+    req,
+    {
       discord_id: true,
       id: true,
       username: true,
@@ -54,39 +55,13 @@ export async function getUsers(req: Request, res: Response) {
       cookies: true,
       avatar: true,
     },
-    take: _limit,
-    orderBy: [
-      {
-        id: "asc",
-      },
-    ],
-  };
-
-  if (sort) {
-    data.orderBy.unshift({
-      [sort as string]: order || "asc",
-    });
-  }
-
-  if (cursor) {
-    data.skip = 1;
-    data.cursor = {
-      id: +cursor,
-    };
-  }
+    {
+      id: "asc",
+    }
+  );
 
   const total = await prisma.user.count();
-
   const users = await prisma.user.findMany(data);
 
-  let nextCursor = null;
-  if (users.length >= _limit) {
-    nextCursor = users.at(-1)?.id;
-  }
-
-  return res.json({
-    data: users,
-    nextCursor,
-    total,
-  });
+  return sendPaginatedResponse(res, users, total, limit);
 }

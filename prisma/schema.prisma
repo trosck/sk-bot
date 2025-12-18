@@ -91,3 +91,11 @@ model ScheduledPost {
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 }
+
+model PromoCat {
+  id Int @id @default(autoincrement())
+
+  promocode String
+  discount  Int
+  date      DateTime
+}

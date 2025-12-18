@@ -23,7 +23,7 @@ export class UserXpReward {
 
     await prisma.user.update({
       where: {
-        user_id: user.user_id,
+        id: user.id,
       },
       data: {
         total_xp: totalXp,
@@ -39,7 +39,7 @@ export class UserXpReward {
 
     const user = await prisma.user.findFirst({
       where: {
-        discord_user_id: message.author.id,
+        discord_id: message.author.id,
       },
     });
 

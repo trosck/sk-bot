@@ -5,7 +5,7 @@ import { UserXpReward } from "../RewardSystem/UserXpReward.js";
 export async function giveUserXP(req: Request, res: Response) {
   const user = await prisma.user.findFirst({
     where: {
-      user_id: Number(req.params.id),
+      id: Number(req.params.id),
     },
   });
 
@@ -21,8 +21,8 @@ export async function giveUserXP(req: Request, res: Response) {
 export async function getUserById(req: Request, res: Response) {
   const user = await prisma.user.findFirst({
     select: {
-      discord_user_id: true,
-      user_id: true,
+      id: true,
+      discord_id: true,
       username: true,
       roles: true,
       total_xp: true,
@@ -31,7 +31,7 @@ export async function getUserById(req: Request, res: Response) {
       avatar: true,
     },
     where: {
-      discord_user_id: req.params.id,
+      discord_id: req.params.id,
     },
   });
 
@@ -45,8 +45,8 @@ export async function getUsers(req: Request, res: Response) {
 
   const data: any = {
     select: {
-      discord_user_id: true,
-      user_id: true,
+      discord_id: true,
+      id: true,
       username: true,
       roles: true,
       total_xp: true,
@@ -57,7 +57,7 @@ export async function getUsers(req: Request, res: Response) {
     take: _limit,
     orderBy: [
       {
-        user_id: "asc",
+        id: "asc",
       },
     ],
   };
@@ -71,7 +71,7 @@ export async function getUsers(req: Request, res: Response) {
   if (cursor) {
     data.skip = 1;
     data.cursor = {
-      user_id: +cursor,
+      id: +cursor,
     };
   }
 
@@ -81,7 +81,7 @@ export async function getUsers(req: Request, res: Response) {
 
   let nextCursor = null;
   if (users.length >= _limit) {
-    nextCursor = users.at(-1)?.user_id;
+    nextCursor = users.at(-1)?.id;
   }
 
   return res.json({

@@ -1,7 +1,7 @@
 import { prisma } from "../prisma.js";
 
 export type UserSyncInput = {
-  discord_user_id: string;
+  discord_id: string;
   username?: string | null;
   nickname?: string | null;
   global_name?: string | null;
@@ -32,7 +32,7 @@ export async function upsertUsersBatch(
       );
 
       queryParams.push(
-        user.discord_user_id,
+        user.discord_id,
         user.username ?? null,
         user.nickname ?? null,
         user.global_name ?? null,
@@ -43,7 +43,7 @@ export async function upsertUsersBatch(
 
     const sql = `
       INSERT INTO "User" (
-        "discord_user_id",
+        "discord_id",
         "username",
         "nickname",
         "global_name",
@@ -52,7 +52,7 @@ export async function upsertUsersBatch(
       )
       VALUES
         ${valuesPlaceholders.join(",\n")}
-      ON CONFLICT ("discord_user_id")
+      ON CONFLICT ("discord_id")
       DO UPDATE
       SET
         "username"    = EXCLUDED."username",

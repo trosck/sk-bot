@@ -18,7 +18,7 @@ const stat: InteractionHandler = async (data, req, res) => {
         cookies: true,
       },
       where: {
-        discord_user_id: userId,
+        discord_id: userId,
       },
     });
 

@@ -47,7 +47,7 @@ async function fetchUsers(
 function memberToUser(member: APIGuildMember) {
   return {
     avatar: member.user.avatar,
-    discord_user_id: member.user.id,
+    discord_id: member.user.id,
     global_name: member.user.global_name,
     username: member.user.username,
     nickname: member.nick,

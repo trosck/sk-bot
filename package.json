@@ -10,7 +10,7 @@
     "build": "tsc",
     "build:clean": "rm -rf dist && npm run build",
     "start": "node dist/src/main.js",
-    "dev": "nodemon --watch src --ext ts --exec \"tsx src/main.ts\" | pino-pretty",
+    "bot": "nodemon --watch src --ext ts --exec \"tsx src/bot.ts\" | pino-pretty",
     "api": "nodemon --watch src --ext ts --exec \"tsx src/api.ts\" | pino-pretty",
     "prisma:format": "prisma format --schema ./prisma/schema.prisma",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
@@ -37,6 +37,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/multer": "^2.0.0",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.15.6",
     "@types/pino": "^7.0.4",

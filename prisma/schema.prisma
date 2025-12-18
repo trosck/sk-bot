@@ -15,9 +15,9 @@ model AppConfig {
 }
 
 model User {
-  user_id Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  discord_user_id String @unique
+  discord_id String @unique
 
   avatar      String?
   //tag
@@ -45,17 +45,18 @@ model User {
 }
 
 model Level {
-  level_id Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  xp   Int
-  role Role[]
+  value Int    @unique
+  xp    Int
+  role  Role[]
 }
 
 model Role {
-  role_id Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   name     String
-  level    Level? @relation(fields: [level_id], references: [level_id])
+  level    Level? @relation(fields: [id], references: [id])
   level_id Int?
 }
 
@@ -97,5 +98,5 @@ model PromoCat {
 
   promocode String
   discount  Int
-  date      DateTime
+  date      DateTime @unique
 }

@@ -2,47 +2,36 @@ import "dotenv/config";
 
 import express from "express";
 import { pinoHttp } from "pino-http";
-import cors from "cors";
+import { verifyKeyMiddleware } from "discord-interactions";
 
 import { logger } from "./logger.js";
-import { NODE_ENV } from "./config.js";
-import { errorMiddleware } from "./middleware.js";
-import { apiRouter } from "./api/index.js";
+import { DISCORD_TOKEN, NODE_ENV, PUBLIC_KEY } from "./config.js";
+import { errorMiddleware, logMiddleware } from "./middleware.js";
+import { client, initDiscordGateway } from "./gateway/index.js";
+import handleDiscordInteractions from "./interactions/index.js";
+import { GuildCommandSyncService } from "./services/guild/guild-command-sync.service.js";
+import { scheduleTasks } from "./scheduler/index.js";
+
+await initDiscordGateway(DISCORD_TOKEN);
+
+scheduleTasks();
+
+const guild = client.guilds.cache.first();
+if (guild) {
+  GuildCommandSyncService.syncCommands(guild);
+}
 
 const app = express();
-const PORT = 3000;
+const PORT = 4000;
 
-app.use(express.json({ limit: "50mb" }));
-app.use(
-  pinoHttp({
-    serializers: {
-      req(req) {
-        delete req.headers;
-        delete req.remoteAddress;
-        delete req.remotePort;
-        req.body = req.raw.body;
-        return req;
-      },
-      res(res) {
-        delete res.headers;
-        return res;
-      },
-    },
-  })
+app.use(pinoHttp());
+
+app.post(
+  "/interactions",
+  verifyKeyMiddleware(PUBLIC_KEY),
+  logMiddleware,
+  handleDiscordInteractions
 );
-
-app.use(
-  cors({
-    origin: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
-    exposedHeaders: ["X-Request-Id"],
-    credentials: true,
-    maxAge: 86400,
-  })
-);
-
-app.use("/api", apiRouter);
 
 app.use((req, res, next) => {
   res.status(404).json({

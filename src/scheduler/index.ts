@@ -6,6 +6,7 @@ import { schedulePromoCat } from "./promo-cat.js";
 export function scheduleTasks() {
   // every minute
   cron.schedule("* * * * *", () => {
+    console.log("check cron");
     // scheduleChannelPost();
     schedulePromoCat();
   });

@@ -12,8 +12,9 @@ model AppConfig {
 
   admin_password String?
 
-  promocats_channel_id String?
-  promocats_post_time  DateTime?
+  promocats_channel_id  String?
+  promocats_post_time   DateTime?
+  promocats_last_posted DateTime?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt

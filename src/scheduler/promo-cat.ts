@@ -24,6 +24,15 @@ export async function schedulePromoCat() {
   const nowTime = new Date();
   nowTime.setMinutes(nowTime.getMinutes() + 1);
 
+  const lastPosted = config.promocats_last_posted;
+  if (lastPosted) {
+    const lastPostedDate = new Date(lastPosted);
+
+    if (lastPostedDate.getDate() === nowTime.getDate()) {
+      return;
+    }
+  }
+
   const itsTimeToPost =
     postTime.getHours() === nowTime.getHours() &&
     postTime.getMinutes() - nowTime.getMinutes() <= 1;
@@ -80,12 +89,18 @@ export async function schedulePromoCat() {
     content: [
       '"Meow!',
       'It’s a new day – a new special promocat for you!"',
-      "\n",
+      "",
       `Promocode: **VP2LUKP9QRQW**`,
       `Bonus **${promocat.discount}%**`,
     ].join("\n"),
     embeds: [linkEmbed],
     files: [imageAttachment],
+  });
+
+  await prisma.appConfig.updateMany({
+    data: {
+      promocats_last_posted: new Date(),
+    },
   });
 
   await prisma.promoCat.delete({

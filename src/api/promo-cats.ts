@@ -101,7 +101,7 @@ export async function uploadPromoCatImages(req: Request, res: Response) {
             preview: Buffer.from(preview),
           });
 
-          // await writeFile(path.join(PROMOCAT_IMAGES_DIR, name), buf);
+          await writeFile(path.join(PROMOCAT_IMAGES_DIR, name), buf);
         })().catch(reject);
 
         tasks.push(task);

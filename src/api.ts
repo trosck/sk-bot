@@ -3,6 +3,7 @@ import "dotenv/config";
 import express from "express";
 import { pinoHttp } from "pino-http";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 import { logger } from "./logger.js";
 import { NODE_ENV } from "./config.js";
@@ -12,6 +13,7 @@ import { apiRouter } from "./api/index.js";
 const app = express();
 const PORT = 3000;
 
+app.use(cookieParser());
 app.use(express.json({ limit: "50mb" }));
 app.use(
   pinoHttp({

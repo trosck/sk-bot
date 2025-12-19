@@ -16,6 +16,8 @@ import {
   uploadPromoCatImages,
   uploadPromoCatPromocodes,
 } from "./promo-cats.js";
+import { login, refresh } from "./auth.js";
+import { authMiddleware } from "../middleware.js";
 
 const apiRouter = express.Router();
 
@@ -26,6 +28,12 @@ const upload = multer({
     //        ^ Mb ^ 1Mb  ^ 1Kb
   },
 });
+
+/** Auth */
+apiRouter.post("/login", login);
+apiRouter.post("/refresh", refresh);
+
+apiRouter.use(authMiddleware);
 
 /** Users */
 apiRouter.get("/users", getUsers);

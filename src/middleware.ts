@@ -5,8 +5,9 @@ import type {
   RequestHandler,
   ErrorRequestHandler,
 } from "express";
-import { NODE_ENV } from "./config.js";
+import { JWT_SECRET_ACCESS, NODE_ENV } from "./config.js";
 import { logger } from "./logger.js";
+import jwt from "jsonwebtoken";
 
 const isDev = NODE_ENV === "development";
 
@@ -71,4 +72,20 @@ export const errorMiddleware: ErrorRequestHandler = (err, req, res, next) => {
   }
 
   res.status(status).json(data);
+};
+
+export const authMiddleware: RequestHandler = (req, res, next) => {
+  const header = req.headers.authorization;
+  if (!header?.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "No token provided" });
+  }
+
+  const token = header.split(" ")[1];
+
+  try {
+    jwt.verify(token, JWT_SECRET_ACCESS);
+    return next();
+  } catch (err) {
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
 };

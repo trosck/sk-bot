@@ -10,6 +10,8 @@ datasource db {
 model AppConfig {
   guild_id String @id
 
+  admin_password String?
+
   promocats_channel_id String?
   promocats_post_time  DateTime?
 

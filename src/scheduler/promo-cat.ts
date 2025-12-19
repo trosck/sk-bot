@@ -14,6 +14,16 @@ import path from "path";
 import { PROMOCAT_IMAGES_DIR } from "../api/promo-cats.js";
 import { rm } from "fs/promises";
 
+function isItTimeToPost(postTime: Date, nowTime: Date) {
+  const isHoursSame = postTime.getHours() === nowTime.getHours();
+
+  const minutesDifference = postTime.getMinutes() - nowTime.getMinutes();
+
+  const isMinutesWithinRange = minutesDifference > 0 && minutesDifference <= 1;
+
+  return isHoursSame && isMinutesWithinRange;
+}
+
 export async function schedulePromoCat() {
   const config = await prisma.appConfig.findFirst();
 
@@ -33,9 +43,7 @@ export async function schedulePromoCat() {
     }
   }
 
-  const itsTimeToPost =
-    postTime.getHours() === nowTime.getHours() &&
-    postTime.getMinutes() - nowTime.getMinutes() <= 1;
+  const itsTimeToPost = isItTimeToPost(postTime, nowTime);
 
   if (!itsTimeToPost) {
     return;
@@ -92,6 +100,7 @@ export async function schedulePromoCat() {
       "",
       `Promocode: **VP2LUKP9QRQW**`,
       `Bonus **${promocat.discount}%**`,
+      "",
     ].join("\n"),
     embeds: [linkEmbed],
     files: [imageAttachment],

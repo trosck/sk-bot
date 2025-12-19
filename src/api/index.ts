@@ -9,6 +9,7 @@ import {
   getScheduledPosts,
 } from "./scheduled-posts.js";
 import {
+  getPromoCatImages,
   getPromoCats,
   getPromoCatsSettings,
   setPromoCatsSettings,
@@ -48,6 +49,7 @@ apiRouter.post(
   upload.single("file"),
   uploadPromoCatPromocodes
 );
+apiRouter.get("/promo-cats/upload/images", getPromoCatImages);
 apiRouter.post(
   "/promo-cats/upload/images",
   upload.single("file"),

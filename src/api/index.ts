@@ -12,6 +12,7 @@ import {
   getPromoCats,
   getPromoCatsSettings,
   setPromoCatsSettings,
+  uploadPromoCatImages,
   uploadPromoCatPromocodes,
 } from "./promo-cats.js";
 
@@ -20,8 +21,8 @@ const apiRouter = express.Router();
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    //        MB
     fileSize: 20 * 1024 * 1024,
+    //        ^ Mb ^ 1Mb  ^ 1Kb
   },
 });
 
@@ -46,6 +47,11 @@ apiRouter.post(
   "/promo-cats/upload/promocodes",
   upload.single("file"),
   uploadPromoCatPromocodes
+);
+apiRouter.post(
+  "/promo-cats/upload/images",
+  upload.single("file"),
+  uploadPromoCatImages
 );
 
 export { apiRouter };

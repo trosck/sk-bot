@@ -15,6 +15,7 @@ function requireEnv(name: string, defaultValue?: string): string {
 }
 
 export const APP_ID = requireEnv("APP_ID");
+export const IMAGES_DIR = requireEnv("IMAGES_DIR");
 export const DISCORD_TOKEN = requireEnv("DISCORD_TOKEN");
 export const PUBLIC_KEY = requireEnv("PUBLIC_KEY");
 export const NODE_ENV = requireEnv("NODE_ENV", "production");

@@ -103,3 +103,8 @@ model PromoCat {
   discount  Int
   date      DateTime @unique
 }
+
+model PromoCatImage {
+  name    String @unique
+  preview String
+}

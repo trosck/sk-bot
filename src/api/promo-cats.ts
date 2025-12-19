@@ -1,10 +1,22 @@
 import { Request, Response } from "express";
+import unzipper from "unzipper";
 import xlsx from "xlsx";
+
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import crypto from "node:crypto";
+import path from "node:path";
+
 import { prisma } from "../prisma.js";
 import {
   createPaginatedQuery,
   sendPaginatedResponse,
 } from "../helpers/create-paginated-query.js";
+import { makePreview } from "../utils/make-preview.js";
+import { Prisma } from "../../generated/prisma/client.js";
+import { IMAGES_DIR } from "../config.js";
+
+export const PROMOCAT_IMAGES_DIR = path.join(IMAGES_DIR, "promocats");
 
 export async function getPromoCatsSettings(req: Request, res: Response) {
   const config = await prisma.appConfig.findFirst();
@@ -28,9 +40,57 @@ export async function setPromoCatsSettings(req: Request, res: Response) {
   return res.json({});
 }
 
-export async function uploadPromoCatPromocodes(req: Request, res: Response) {
+export async function getPromoCatImages(req: Request, res: Response) {
+  const previews = await prisma.promoCatImage.findMany();
+
+  return res.json(previews);
+}
+
+export async function uploadPromoCatImages(req: Request, res: Response) {
   if (!req.file) {
     return res.status(400).json({ error: "No file🤨" });
+  }
+
+  const filePath = req.file.path;
+
+  await mkdir(PROMOCAT_IMAGES_DIR, { recursive: true });
+
+  const previews: Prisma.PromoCatImageModel[] = [];
+
+  await new Promise((resolve, reject) => {
+    createReadStream(filePath)
+      .pipe(unzipper.Parse())
+      .on("entry", async (entry) => {
+        if (entry.type !== "File") {
+          entry.autodrain();
+        }
+
+        const name = crypto.randomUUID();
+        const buf = await entry.buffer();
+
+        // Save original
+        await writeFile(path.join(PROMOCAT_IMAGES_DIR, name), buf);
+
+        // Create compressed preview
+        const preview = await makePreview(buf);
+        previews.push({ name: path.basename(name), preview });
+      })
+      .on("close", resolve)
+      .on("error", reject);
+  });
+
+  await unlink(filePath).catch(console.error);
+
+  await prisma.promoCatImage.createMany({
+    data: previews,
+  });
+
+  return res.json({});
+}
+
+export async function uploadPromoCatPromocodes(req: Request, res: Response) {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file🙁" });
   }
 
   const workbook = xlsx.read(req.file.buffer, {
@@ -40,7 +100,7 @@ export async function uploadPromoCatPromocodes(req: Request, res: Response) {
 
   const firstSheetName = workbook.SheetNames[0];
   if (!firstSheetName) {
-    return res.status(400).json({ error: "No data🙁" });
+    return res.status(400).json({ error: "No data🤨" });
   }
 
   const sheet = workbook.Sheets[firstSheetName];

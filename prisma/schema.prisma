@@ -106,5 +106,5 @@ model PromoCat {
 
 model PromoCatImage {
   name    String @unique
-  preview String
+  preview Bytes
 }

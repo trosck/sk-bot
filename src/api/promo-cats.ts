@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import unzipper from "unzipper";
 import xlsx from "xlsx";
 
-import { mkdir, unlink, writeFile } from "node:fs/promises";
-import { createReadStream } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
+import { Readable } from "node:stream";
 import crypto from "node:crypto";
 import path from "node:path";
 
@@ -46,43 +46,75 @@ export async function getPromoCatImages(req: Request, res: Response) {
   return res.json(previews);
 }
 
+const IMAGE_FORMATS = new Set([
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".gif",
+  ".tif",
+  ".tiff",
+  ".avif",
+]);
+
 export async function uploadPromoCatImages(req: Request, res: Response) {
   if (!req.file) {
     return res.status(400).json({ error: "No file🤨" });
   }
 
-  const filePath = req.file.path;
-
   await mkdir(PROMOCAT_IMAGES_DIR, { recursive: true });
 
+  const fileBuffer = req.file.buffer;
   const previews: Prisma.PromoCatImageModel[] = [];
 
   await new Promise((resolve, reject) => {
-    createReadStream(filePath)
+    const tasks: Promise<void>[] = [];
+
+    Readable.from(fileBuffer)
       .pipe(unzipper.Parse())
       .on("entry", async (entry) => {
         if (entry.type !== "File") {
-          entry.autodrain();
+          return entry.autodrain();
         }
 
-        const name = crypto.randomUUID();
-        const buf = await entry.buffer();
+        const task = (async () => {
+          const origName = entry.path || "";
+          const ext = path.extname(origName) || "";
 
-        // Save original
-        await writeFile(path.join(PROMOCAT_IMAGES_DIR, name), buf);
+          if (!IMAGE_FORMATS.has(ext)) {
+            return entry.autodrain();
+          }
 
-        // Create compressed preview
-        const preview = await makePreview(buf);
-        previews.push({ name: path.basename(name), preview });
+          const name = `${crypto.randomUUID()}${ext}`;
+          const buf = await entry.buffer();
+
+          let preview: Buffer;
+          try {
+            preview = await makePreview(buf);
+          } catch (e) {
+            // bad/corrupt image, skip
+            return;
+          }
+
+          previews.push({
+            name: path.basename(name),
+            preview: Buffer.from(preview),
+          });
+
+          // await writeFile(path.join(PROMOCAT_IMAGES_DIR, name), buf);
+        })().catch(reject);
+
+        tasks.push(task);
       })
-      .on("close", resolve)
+      .on("close", () => {
+        Promise.all(tasks).then(resolve).catch(reject);
+      })
       .on("error", reject);
   });
 
-  await unlink(filePath).catch(console.error);
-
   await prisma.promoCatImage.createMany({
     data: previews,
+    skipDuplicates: true,
   });
 
   return res.json({});

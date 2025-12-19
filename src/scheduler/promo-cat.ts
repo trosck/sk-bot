@@ -6,20 +6,29 @@ Promocode: ASFK8LLE23LH
 Use Promo - Bonus 7%
  */
 
-import { AttachmentBuilder, EmbedBuilder } from "discord.js";
+import path from "node:path";
+import { rm } from "node:fs/promises";
+
+import {
+  ActionRowBuilder,
+  AttachmentBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+} from "discord.js";
+
 import { client } from "../gateway/index.js";
 import { logger } from "../logger.js";
 import { prisma } from "../prisma.js";
-import path from "path";
+
 import { PROMOCAT_IMAGES_DIR } from "../api/promo-cats.js";
-import { rm } from "fs/promises";
 
 function isItTimeToPost(postTime: Date, nowTime: Date) {
   const isHoursSame = postTime.getHours() === nowTime.getHours();
 
-  const minutesDifference = postTime.getMinutes() - nowTime.getMinutes();
+  const minutesDifference = nowTime.getMinutes() - postTime.getMinutes();
 
-  const isMinutesWithinRange = minutesDifference > 0 && minutesDifference <= 1;
+  const isMinutesWithinRange = minutesDifference >= 0 && minutesDifference <= 1;
 
   return isHoursSame && isMinutesWithinRange;
 }
@@ -88,22 +97,36 @@ export async function schedulePromoCat() {
     nowTime.getMonth() + 1
   }${nowTime.getFullYear()}`;
 
-  const linkEmbed = new EmbedBuilder().setTitle("Use promocode").setURL(link);
-
   const imagePath = path.join(PROMOCAT_IMAGES_DIR, promocatImage.name);
-  const imageAttachment = new AttachmentBuilder(imagePath);
+
+  const imageAttachment = new AttachmentBuilder(imagePath, {
+    name: promocatImage.name,
+  });
+
+  const linkEmbed = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setStyle(ButtonStyle.Link)
+      .setLabel("Use promocode")
+      .setURL(link)
+  );
+
+  const textEmbed = new EmbedBuilder()
+    .setDescription(
+      [
+        "Meow!",
+        "It’s a new day – a new special promocat for you!",
+        "",
+        `Promocode: **VP2LUKP9QRQW**`,
+        `Bonus **${promocat.discount}%**`,
+        "",
+      ].join("\n")
+    )
+    .setImage(`attachment://${promocatImage.name}`);
 
   await channel.send({
-    content: [
-      '"Meow!',
-      'It’s a new day – a new special promocat for you!"',
-      "",
-      `Promocode: **VP2LUKP9QRQW**`,
-      `Bonus **${promocat.discount}%**`,
-      "",
-    ].join("\n"),
-    embeds: [linkEmbed],
+    embeds: [textEmbed],
     files: [imageAttachment],
+    components: [linkEmbed.toJSON()],
   });
 
   await prisma.appConfig.updateMany({

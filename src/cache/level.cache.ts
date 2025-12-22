@@ -6,13 +6,11 @@ const KEY = "level";
 const levelCache = new NodeCache<Level[]>();
 
 async function updateLevelCache() {
-  const level = await prisma.level.findMany({
-    orderBy: {
-      level_id: "asc",
-    },
-  });
-  levelCache.set(KEY, level);
-  return level;
+  const levels = await prisma.level.findMany();
+
+  levelCache.set(KEY, levels);
+
+  return levels;
 }
 
 export async function getLevel(): Promise<Level[]> {

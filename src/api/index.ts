@@ -5,8 +5,10 @@ import { getUserById, getUsers, giveUserXP } from "./users.js";
 import { getChannels } from "./channels.js";
 import {
   createScheduledPost,
+  deleteScheduledPost,
   getScheduledPostById,
   getScheduledPosts,
+  updateScheduledPost,
 } from "./scheduled-posts.js";
 import {
   getPromoCatImages,
@@ -33,7 +35,7 @@ const upload = multer({
 apiRouter.post("/login", login);
 apiRouter.post("/refresh", refresh);
 
-apiRouter.use(authMiddleware);
+// apiRouter.use(authMiddleware);
 
 /** Users */
 apiRouter.get("/users", getUsers);
@@ -47,6 +49,8 @@ apiRouter.get("/channels", getChannels);
 apiRouter.get("/scheduled-posts", getScheduledPosts);
 apiRouter.post("/scheduled-posts", createScheduledPost);
 apiRouter.get("/scheduled-posts/:id", getScheduledPostById);
+apiRouter.delete("/scheduled-posts/:id", deleteScheduledPost);
+apiRouter.patch("/scheduled-posts/:id", updateScheduledPost);
 
 /** PromoCats */
 apiRouter.get("/promo-cats", getPromoCats);

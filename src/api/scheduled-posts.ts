@@ -20,6 +20,39 @@ export async function createScheduledPost(req: Request, res: Response) {
   return res.json({});
 }
 
+export async function updateScheduledPost(req: Request, res: Response) {
+  const postId = req.params.id;
+
+  if (!postId) {
+    return res.status(400).json({ error: "no post id" });
+  }
+
+  await prisma.scheduledPost.update({
+    data: req.body,
+    where: {
+      id: parseInt(postId),
+    },
+  });
+
+  return res.json({});
+}
+
+export async function deleteScheduledPost(req: Request, res: Response) {
+  const postId = req.params.id;
+
+  if (!postId) {
+    return res.status(400).json({ error: "no post id" });
+  }
+
+  await prisma.scheduledPost.delete({
+    where: {
+      id: parseInt(postId),
+    },
+  });
+
+  return res.json({});
+}
+
 export async function getScheduledPostById(req: Request, res: Response) {
   const post = await prisma.scheduledPost.findFirst({
     select: {

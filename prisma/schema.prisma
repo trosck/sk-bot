@@ -61,7 +61,8 @@ model Level {
 model Role {
   id Int @id @default(autoincrement())
 
-  name     String
+  name String
+
   level    Level? @relation(fields: [id], references: [id])
   level_id Int?
 }
@@ -81,6 +82,16 @@ enum ScheduledPostStatus {
   FAILED
 }
 
+model ScheduledPostImage {
+  id Int @id @default(autoincrement())
+
+  path    String
+  preview Bytes
+
+  scheduledPost   ScheduledPost? @relation(fields: [scheduledPostId], references: [id])
+  scheduledPostId Int?
+}
+
 model ScheduledPost {
   id Int @id @default(autoincrement())
 
@@ -88,7 +99,7 @@ model ScheduledPost {
   channel_id String
 
   text  String
-  media String[]
+  media ScheduledPostImage[]
 
   status ScheduledPostStatus @default(SCHEDULED)
   error  String?

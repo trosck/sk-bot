@@ -1,20 +1,9 @@
+import { AttachmentBuilder } from "discord.js";
 import { client } from "../gateway/index.js";
 import { logger } from "../logger.js";
 import { prisma } from "../prisma.js";
-
-/**
- * запрашивать время отложенного поста
- * и делать таймер на это время
- *
- * опрос раз в 5 минут
- *
- * взяли пост - поставили статус PROCESSING - поставили таймер
- *
- * при запуске приложения всем постам со статусом PROCESSING
- * ставить статус SCHEDULED т.к. это значит приложение упало
- * во время обработки. либо ставить таймер на постинг/постить
- * сразу
- */
+import path from "node:path";
+import { IMAGES_DIR } from "../config.js";
 
 export async function scheduleChannelPost() {
   const posts = await prisma.scheduledPost.findMany({
@@ -47,24 +36,37 @@ export async function scheduleChannelPost() {
       });
 
       const channel = await client.channels.fetch(post.channel_id);
-      if (channel?.isSendable()) {
-        await channel.send({
-          content: post.text,
-          embeds: [
-            {
-              title: "title?",
-              description: "description",
-              footer: {
-                text: "footer",
-              },
-              image: {
-                url: "https://hips.hearstapps.com/hmg-prod/images/ginger-maine-coon-kitten-running-on-lawn-in-royalty-free-image-1719608142.jpg",
-              },
-              url: "https://hips.hearstapps.com/hmg-prod/images/ginger-maine-coon-kitten-running-on-lawn-in-royalty-free-image-1719608142.jpg",
-            },
-          ],
+      if (!channel?.isSendable()) {
+        await prisma.scheduledPost.update({
+          where: {
+            id: post.id,
+          },
+          data: {
+            status: "FAILED",
+            error: "Can't write to this channel",
+          },
         });
+
+        return logger.error("cant send to this channel");
       }
+
+      const postData: any = {
+        content: post.text,
+      };
+
+      if (post.media) {
+        const media = post.media[0];
+        const imageAttachment = new AttachmentBuilder(
+          path.join(IMAGES_DIR, media.path),
+          {
+            name: media.path,
+          }
+        );
+
+        postData.files = [imageAttachment];
+      }
+
+      await channel.send(postData);
 
       await prisma.scheduledPost.update({
         where: {

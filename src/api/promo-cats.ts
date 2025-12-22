@@ -15,6 +15,7 @@ import {
 import { makePreview } from "../utils/make-preview.js";
 import { Prisma } from "../../generated/prisma/client.js";
 import { IMAGES_DIR } from "../config.js";
+import { IMAGE_FORMATS } from "../constants.js";
 
 export const PROMOCAT_IMAGES_DIR = path.join(IMAGES_DIR, "promocats");
 
@@ -45,17 +46,6 @@ export async function getPromoCatImages(req: Request, res: Response) {
 
   return res.json(previews);
 }
-
-const IMAGE_FORMATS = new Set([
-  ".jpg",
-  ".jpeg",
-  ".png",
-  ".webp",
-  ".gif",
-  ".tif",
-  ".tiff",
-  ".avif",
-]);
 
 export async function uploadPromoCatImages(req: Request, res: Response) {
   if (!req.file) {

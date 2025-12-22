@@ -35,7 +35,7 @@ const upload = multer({
 apiRouter.post("/login", login);
 apiRouter.post("/refresh", refresh);
 
-// apiRouter.use(authMiddleware);
+apiRouter.use(authMiddleware);
 
 /** Users */
 apiRouter.get("/users", getUsers);
@@ -47,10 +47,14 @@ apiRouter.get("/channels", getChannels);
 
 /** Scheduled posts */
 apiRouter.get("/scheduled-posts", getScheduledPosts);
-apiRouter.post("/scheduled-posts", createScheduledPost);
+apiRouter.post("/scheduled-posts", upload.single("file"), createScheduledPost);
 apiRouter.get("/scheduled-posts/:id", getScheduledPostById);
 apiRouter.delete("/scheduled-posts/:id", deleteScheduledPost);
-apiRouter.patch("/scheduled-posts/:id", updateScheduledPost);
+apiRouter.patch(
+  "/scheduled-posts/:id",
+  upload.single("file"),
+  updateScheduledPost
+);
 
 /** PromoCats */
 apiRouter.get("/promo-cats", getPromoCats);

@@ -53,5 +53,5 @@ export async function UserCommandHandler({
     throw new Error(`unknown command: ${methodName}`);
   }
 
-  return handlers[methodName](data, req, res);
+  return; //handlers[methodName](data, req, res);
 }

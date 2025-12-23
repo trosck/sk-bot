@@ -20,6 +20,7 @@ import {
 } from "./promo-cats.js";
 import { login, refresh } from "./auth.js";
 import { authMiddleware } from "../middleware.js";
+import { NODE_ENV } from "../config.js";
 
 const apiRouter = express.Router();
 
@@ -35,7 +36,9 @@ const upload = multer({
 apiRouter.post("/login", login);
 apiRouter.post("/refresh", refresh);
 
-apiRouter.use(authMiddleware);
+if (NODE_ENV !== "development") {
+  apiRouter.use(authMiddleware);
+}
 
 /** Users */
 apiRouter.get("/users", getUsers);

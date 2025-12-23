@@ -1,11 +1,3 @@
-/**
-"Meow!
-It’s a new day – a new special promocat for you!"
-
-Promocode: ASFK8LLE23LH
-Use Promo - Bonus 7%
- */
-
 import path from "node:path";
 import { rm } from "node:fs/promises";
 
@@ -26,7 +18,8 @@ import { PROMOCAT_IMAGES_DIR } from "../api/promo-cats.js";
 function isItTimeToPost(postTime: Date, nowTime: Date) {
   const isHoursSame = postTime.getHours() === nowTime.getHours();
 
-  const minutesDifference = nowTime.getMinutes() - postTime.getMinutes();
+  const minutesDifference =
+    (nowTime.getTime() - postTime.getTime()) / 1000 / 60;
 
   const isMinutesWithinRange = minutesDifference >= 0 && minutesDifference <= 5;
 
@@ -41,7 +34,9 @@ export async function schedulePromoCat() {
 
   const postTime = new Date(config.promocats_post_time);
   const nowTime = new Date();
-  nowTime.setMinutes(nowTime.getMinutes() + 1);
+  postTime.setDate(nowTime.getDate());
+  postTime.setMonth(nowTime.getMonth());
+  postTime.setFullYear(nowTime.getFullYear());
 
   const lastPosted = config.promocats_last_posted;
   if (lastPosted) {
@@ -116,7 +111,7 @@ export async function schedulePromoCat() {
         "Meow!",
         "It’s a new day – a new special promocat for you!",
         "",
-        `Promocode: **VP2LUKP9QRQW**`,
+        `Promocode: **${promocat.promocode}**`,
         `Bonus **${promocat.discount}%**`,
         "",
       ].join("\n")

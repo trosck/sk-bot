@@ -28,7 +28,7 @@ function isItTimeToPost(postTime: Date, nowTime: Date) {
 
   const minutesDifference = nowTime.getMinutes() - postTime.getMinutes();
 
-  const isMinutesWithinRange = minutesDifference >= 0 && minutesDifference <= 1;
+  const isMinutesWithinRange = minutesDifference >= 0 && minutesDifference <= 5;
 
   return isHoursSame && isMinutesWithinRange;
 }

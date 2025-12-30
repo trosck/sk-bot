@@ -136,7 +136,7 @@ async function uploadScheduledPostImage(
   await mkdir(IMAGES_DIR, { recursive: true });
 
   const origName = file.originalname || "";
-  const ext = path.extname(origName) || "";
+  const ext = (path.extname(origName) || "").toLowerCase();
 
   if (!IMAGE_FORMATS.has(ext)) {
     return;

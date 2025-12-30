@@ -4,6 +4,7 @@ import { logger } from "../logger.js";
 import { prisma } from "../prisma.js";
 import path from "node:path";
 import { IMAGES_DIR } from "../config.js";
+import { withRetry } from "../utils/with-retry.js";
 
 export async function scheduleChannelPost() {
   const posts = await prisma.scheduledPost.findMany({
@@ -66,7 +67,7 @@ export async function scheduleChannelPost() {
         postData.files = [imageAttachment];
       }
 
-      await channel.send(postData);
+      await withRetry(() => channel.send(postData));
 
       await prisma.scheduledPost.update({
         where: {

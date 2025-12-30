@@ -1,14 +1,16 @@
-// export async function withRetry(cb: Promise<any>) {
-//   let attempt = 0
-//   const retries = 3
-//   while (attempt < retries) {
-//     await cb()
-//   }
-// }
+import { logger } from "../logger.js";
 
-/**
- * написать отдельный метод для отправки сообщений
- * и на него навесить декоратор @WithRetry
- * с возможностью настройки кол-ва ретраев,
- * времени задержки и тд(?)
- */
+export async function withRetry(cb: () => Promise<any>) {
+  let attempt = 0;
+  const retries = 3;
+
+  while (++attempt <= retries) {
+    try {
+      await cb();
+      return;
+    } catch (err) {
+      logger.debug("Failed attempt " + attempt);
+      continue;
+    }
+  }
+}

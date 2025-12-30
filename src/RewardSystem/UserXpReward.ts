@@ -3,6 +3,7 @@ import { UserNotFound } from "../errors/UserNotFound.js";
 import { prisma } from "../prisma.js";
 import { getLevel } from "../cache/level.cache.js";
 import { UserModel } from "../../generated/prisma/models.js";
+import { logger } from "../logger.js";
 
 const rewards = {
   message: 10,
@@ -21,15 +22,19 @@ export class UserXpReward {
       userLevel = nextLevel;
     }
 
-    await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        total_xp: totalXp,
-        level: userLevel,
-      },
-    });
+    try {
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          total_xp: totalXp,
+          level: userLevel,
+        },
+      });
+    } catch (err) {
+      logger.error(`Fail to reward user: [${user.id}] ${user.username}`);
+    }
   }
 
   static async messageActivity(message: Message) {

@@ -78,8 +78,13 @@ export async function scheduleChannelPost() {
         },
       });
 
-      logger.info(`Sent "${post.id}" post`);
+      logger.info(
+        `Sent post ID${post.id} [${post.scheduled_at}] ${post.channel_id}`
+      );
     } catch (error) {
+      logger.error(
+        `Error sending post [${post.scheduled_at}] ${post.channel_id}`
+      );
       await prisma.scheduledPost.update({
         where: {
           id: post.id,

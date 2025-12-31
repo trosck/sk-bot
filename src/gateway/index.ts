@@ -30,14 +30,14 @@ client.on("clientReady", async () => {
   }
 });
 
-client.on("guildMemberAdd", async (member) => {
-  await prisma.user.create({
-    data: {
-      avatar: member.avatar,
-      discord_id: member.id,
-    },
-  });
-});
+// client.on("guildMemberAdd", async (member) => {
+//   await prisma.user.create({
+//     data: {
+//       avatar: member.avatar,
+//       discord_id: member.id,
+//     },
+//   });
+// });
 
 client.on("messageCreate", async (message) => {
   logger.debug(`${message.author.displayName}: ${message.content}`);

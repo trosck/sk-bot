@@ -55,6 +55,8 @@ export async function scheduleChannelPost() {
         content: post.text,
       };
 
+      logger.info("Before media");
+
       if (post.media) {
         const media = post.media[0];
         const imageAttachment = new AttachmentBuilder(
@@ -67,7 +69,11 @@ export async function scheduleChannelPost() {
         postData.files = [imageAttachment];
       }
 
-      await withRetry(() => channel.send(postData));
+      logger.info("Before send");
+
+      await channel.send(postData);
+
+      // await withRetry(() => channel.send(postData));
 
       await prisma.scheduledPost.update({
         where: {

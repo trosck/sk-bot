@@ -60,6 +60,15 @@ export async function getUsers(req: Request, res: Response) {
     }
   );
 
+  const search = req.query.search as string;
+  if (search) {
+    data.where = {
+      OR: [
+        { username: { contains: search, mode: "insensitive" } },
+      ],
+    };
+  }
+
   const total = await prisma.user.count();
   const users = await prisma.user.findMany(data);
 

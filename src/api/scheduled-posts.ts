@@ -9,6 +9,7 @@ import { IMAGES_DIR } from "../config.js";
 import path from "node:path";
 import { makePreview } from "../utils/make-preview.js";
 import { IMAGE_FORMATS } from "../constants.js";
+import { ScheduledPostModel } from "../../generated/prisma/models.js";
 
 export async function createScheduledPost(req: Request, res: Response) {
   const { channel_id, scheduled_at, text } = req.body;
@@ -53,6 +54,18 @@ export async function updateScheduledPost(req: Request, res: Response) {
     return res.status(400).json({ error: "no post id" });
   }
 
+  const postData: Partial<ScheduledPostModel> = {
+    text: req.body.text,
+    scheduled_at: req.body.scheduled_at,
+    channel_id: req.body.channel_id,
+  };
+
+  /**
+    * We don't write `media` to the ScheduledPost
+    * table because images for posts are stored
+    * in a separate ScheduledPostImage table
+    */
+
   if (req.body.media === "") {
     await deleteScheduledPostImage(postId);
   }
@@ -63,7 +76,7 @@ export async function updateScheduledPost(req: Request, res: Response) {
   }
 
   await prisma.scheduledPost.update({
-    data: req.body,
+    data: postData,
     where: {
       id: postId,
     },

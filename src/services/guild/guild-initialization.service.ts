@@ -2,10 +2,11 @@ import type { Guild } from "discord.js";
 
 import { logger } from "../../logger.js";
 import { prisma } from "../../prisma.js";
+import { getAppConfig } from "../../cache/app-config.cache.js";
 
 export class GuildInitializationService {
   static async init(guild: Guild) {
-    const config = await prisma.appConfig.findFirst();
+    const config = await getAppConfig();
 
     if (config) {
       return;

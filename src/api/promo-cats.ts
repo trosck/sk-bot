@@ -16,11 +16,12 @@ import { makePreview } from "../utils/make-preview.js";
 import { Prisma } from "../../generated/prisma/client.js";
 import { IMAGES_DIR } from "../config.js";
 import { IMAGE_FORMATS } from "../constants.js";
+import { getAppConfig } from "../cache/app-config.cache.js";
 
 export const PROMOCAT_IMAGES_DIR = path.join(IMAGES_DIR, "promocats");
 
 export async function getPromoCatsSettings(req: Request, res: Response) {
-  const config = await prisma.appConfig.findFirst();
+  const config = await getAppConfig();
 
   return res.json({
     channel_id: config?.promocats_channel_id ?? null,

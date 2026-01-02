@@ -15,11 +15,11 @@ export class UserXpReward {
     const totalXp = user.total_xp + xp;
 
     const level = await getLevel();
-    const levelIndex = level.findIndex((item) => item.level_id === userLevel);
+    const levelIndex = level.findIndex((item) => item.id === userLevel);
 
     const nextLevel = level[levelIndex + 1];
     if (nextLevel && totalXp >= nextLevel.xp) {
-      userLevel = nextLevel;
+      userLevel = nextLevel.id;
     }
 
     try {

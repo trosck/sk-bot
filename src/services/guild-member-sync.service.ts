@@ -59,8 +59,8 @@ function guildMemberToUser(member: GuildMember) {
   const roles = Array.from(member.roles.cache.values()).map((role) => role.id);
 
   return {
-    avatar: member.avatar,
-    discord_id: member.id,
+    avatar: member.user.avatar,
+    discord_id: member.user.id,
     global_name: member.user.globalName,
     username: member.user.username,
     nickname: member.nickname,

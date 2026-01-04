@@ -53,18 +53,16 @@ model User {
 model Level {
   id Int @id @default(autoincrement())
 
-  value Int    @unique
+  value Int @unique
   xp    Int
-  role  Role[]
+
+  role_add String
+  role_del String
 }
 
 model Role {
-  id Int @id @default(autoincrement())
-
+  id   String @unique
   name String
-
-  level    Level? @relation(fields: [id], references: [id])
-  level_id Int?
 }
 
 model Channel {

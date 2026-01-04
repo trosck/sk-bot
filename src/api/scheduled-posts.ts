@@ -54,17 +54,16 @@ export async function updateScheduledPost(req: Request, res: Response) {
     return res.status(400).json({ error: "no post id" });
   }
 
-  const postData: Partial<ScheduledPostModel> = {
-    text: req.body.text,
-    scheduled_at: req.body.scheduled_at,
-    channel_id: req.body.channel_id,
-  };
-
   /**
     * We don't write `media` to the ScheduledPost
     * table because images for posts are stored
     * in a separate ScheduledPostImage table
     */
+  const postData: Partial<ScheduledPostModel> = {
+    text: req.body.text,
+    scheduled_at: req.body.scheduled_at,
+    channel_id: req.body.channel_id,
+  };
 
   if (req.body.media === "") {
     await deleteScheduledPostImage(postId);

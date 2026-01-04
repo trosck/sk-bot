@@ -1,12 +1,12 @@
 import { Client, GatewayIntentBits } from "discord.js";
 
-import { logger } from "../logger.js";
-import { UserXpReward } from "../RewardSystem/UserXpReward.js";
-import { GuildInitializationService } from "../services/guild/guild-initialization.service.js";
-import { GuildChannelSyncService } from "../services/guild/guild-channel-sync.service.js";
-import { GuildMemberSyncService } from "../services/guild/guild-member-sync.service.js";
-import { GuildCommandSyncService } from "../services/guild/guild-command-sync.service.js";
-import { prisma } from "../prisma.js";
+import { logger } from "./logger.js";
+import { UserXpReward } from "./RewardSystem/UserXpReward.js";
+import { GuildInitializationService } from "./services/guild/guild-initialization.service.js";
+import { GuildChannelSyncService } from "./services/guild/guild-channel-sync.service.js";
+import { GuildMemberSyncService } from "./services/guild/guild-member-sync.service.js";
+import { GuildCommandSyncService } from "./services/guild/guild-command-sync.service.js";
+import { prisma } from "./prisma.js";
 
 const client = new Client({
   // https://discord.com/developers/docs/events/gateway#list-of-intents

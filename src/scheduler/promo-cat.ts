@@ -9,7 +9,7 @@ import {
   EmbedBuilder,
 } from "discord.js";
 
-import { client } from "../gateway/index.js";
+import { client } from "../client.js";
 import { logger } from "../logger.js";
 import { prisma } from "../prisma.js";
 

@@ -4,7 +4,7 @@ import { scheduleChannelPost } from "./channel-post.js";
 import { schedulePromoCat } from "./promo-cat.js";
 
 import { logger } from "../logger.js";
-import { client } from "../gateway/index.js";
+import { client } from "../client.js";
 
 import { GuildMemberSyncService } from "../services/guild/guild-member-sync.service.js";
 import { GuildChannelSyncService } from "../services/guild/guild-channel-sync.service.js";

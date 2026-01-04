@@ -1,8 +1,8 @@
 import type { Guild } from "discord.js";
 
-import { logger } from "../../logger.js";
-import { prisma } from "../../prisma.js";
-import { AppConfigService } from "../app-config.service.js";
+import { logger } from "../logger.js";
+import { prisma } from "../prisma.js";
+import { AppConfigService } from "./app-config.service.js";
 
 export class GuildInitializationService {
   static async init(guild: Guild) {

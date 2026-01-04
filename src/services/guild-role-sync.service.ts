@@ -1,7 +1,7 @@
 import { Guild, Role } from "discord.js";
-import { logger } from "../../logger.js";
-import { prisma } from "../../prisma.js";
-import { upsertRolesBatch } from "../../helpers/upsert-roles-batch.js";
+import { logger } from "../logger.js";
+import { prisma } from "../prisma.js";
+import { upsertRolesBatch } from "../helpers/upsert-roles-batch.js";
 
 export class GuildRoleSyncService {
   static async syncRoles(guild: Guild) {

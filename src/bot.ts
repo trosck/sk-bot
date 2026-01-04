@@ -9,7 +9,7 @@ import { DISCORD_TOKEN, NODE_ENV, PUBLIC_KEY } from "./config.js";
 import { errorMiddleware } from "./middleware.js";
 import { client, initDiscordGateway } from "./client.js";
 import handleDiscordInteractions from "./interactions/index.js";
-import { GuildCommandSyncService } from "./services/guild/guild-command-sync.service.js";
+import { GuildCommandSyncService } from "./services/guild-command-sync.service.js";
 import { scheduleTasks } from "./scheduler/index.js";
 
 await initDiscordGateway(DISCORD_TOKEN);

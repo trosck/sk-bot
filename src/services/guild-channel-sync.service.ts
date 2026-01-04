@@ -1,8 +1,8 @@
 import type { Guild, GuildChannel } from "discord.js";
 
-import { logger } from "../../logger.js";
-import { upsertChannelsBatch } from "../../helpers/upsert-channels-batch.js";
-import { prisma } from "../../prisma.js";
+import { logger } from "../logger.js";
+import { upsertChannelsBatch } from "../helpers/upsert-channels-batch.js";
+import { prisma } from "../prisma.js";
 
 export class GuildChannelSyncService {
   static async syncChannels(guild: Guild) {

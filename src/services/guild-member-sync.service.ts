@@ -6,13 +6,13 @@ import {
   type RESTGetAPIGuildMemberResult,
 } from "discord.js";
 
-import { logger } from "../../logger.js";
-import { DiscordRequest } from "../../request.js";
-import { prisma } from "../../prisma.js";
+import { logger } from "../logger.js";
+import { DiscordRequest } from "../request.js";
+import { prisma } from "../prisma.js";
 import {
   upsertUsersBatch,
   type UserSyncInput,
-} from "../../helpers/upsert-users-batch.js";
+} from "../helpers/upsert-users-batch.js";
 
 /**
  * guild members pagination limit (1-1000)

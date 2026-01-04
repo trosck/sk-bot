@@ -11,7 +11,6 @@ import { GuildInitializationService } from "./services/guild-initialization.serv
 import { GuildChannelSyncService } from "./services/guild-channel-sync.service.js";
 import { GuildMemberSyncService } from "./services/guild-member-sync.service.js";
 import { GuildCommandSyncService } from "./services/guild-command-sync.service.js";
-import { prisma } from "./prisma.js";
 import { GuildRoleSyncService } from "./services/guild-role-sync.service.js";
 
 const client = new Client({
@@ -45,8 +44,13 @@ client.on("roleCreate", async (role) => {
 });
 
 client.on("roleUpdate", async (role) => {
-  await GuildRoleSyncService.updateRole(role);
-  logger.debug(`Updated role ${role.name}`);
+  const updatedRole = await client.guilds.cache.at(0)?.roles.fetch(role.id);
+  if (!updatedRole) {
+    return;
+  }
+
+  await GuildRoleSyncService.updateRole(updatedRole);
+  logger.debug(`Updated role ${updatedRole.name}`);
 });
 
 client.on("roleDelete", async (role) => {
@@ -57,15 +61,34 @@ client.on("roleDelete", async (role) => {
 /** Users */
 
 client.on("guildMemberAdd", async (member) => {
-  await GuildMemberSyncService.addUser(member);
-  logger.debug(`Added user ${member.user.username}`);
+  try {
+    await GuildMemberSyncService.addUser(member);
+    logger.debug(`Added user ${member.user.username}`);
+  } catch (err) {
+    /**
+     * There is no (for now) good mechanism for deleting
+     * users that leaved/kicked so can be rejoined user
+     */
+    logger.error("Can't add user");
+  }
 });
 
 client.on("guildMemberUpdate", async (member) => {
-  await GuildMemberSyncService.updateUser(member as GuildMember);
-  logger.debug(`Updated user ${member.user.username}`);
+  const updatedMember = await client.guilds.cache
+    .at(0)
+    ?.members.fetch(member.id);
+
+  if (!updatedMember) {
+    return;
+  }
+
+  await GuildMemberSyncService.updateUser(updatedMember);
+  logger.debug(`Updated user ${updatedMember.user.username}`);
 });
 
+/**
+ * Discord not sending that event, don't know why
+ */
 client.on("guildMemberRemove", async (member) => {
   await GuildMemberSyncService.deleteUser(member as GuildMember);
   logger.debug(`Deleted user ${member.user.username}`);
@@ -79,13 +102,21 @@ client.on("channelCreate", async (channel) => {
 });
 
 client.on("channelUpdate", async (channel) => {
-  await GuildChannelSyncService.updateChannel(channel as GuildChannel);
-  logger.debug(`Updated channel ${channel.id}`);
+  const updatedChannel = await client.guilds.cache
+    .at(0)
+    ?.channels.fetch(channel.id);
+
+  if (!updatedChannel) {
+    return;
+  }
+
+  await GuildChannelSyncService.updateChannel(updatedChannel as GuildChannel);
+  logger.debug(`Updated channel ${(updatedChannel as GuildChannel).name}`);
 });
 
 client.on("channelDelete", async (channel) => {
-  await GuildChannelSyncService.createChannel(channel as GuildChannel);
-  logger.debug(`De channel ${channel.id}`);
+  await GuildChannelSyncService.deleteChannel(channel as GuildChannel);
+  logger.debug(`Deleted channel ${(channel as GuildChannel).name}`);
 });
 
 /** */
@@ -107,14 +138,6 @@ client.on("guildCreate", async (guild) => {
   await GuildRoleSyncService.syncRoles(guild);
   await GuildChannelSyncService.syncChannels(guild);
   await GuildCommandSyncService.syncCommands(guild);
-});
-
-client.on("channelCreate", async (channel) => {
-  logger.debug({ channel });
-});
-
-client.on("channelDelete", async (channel) => {
-  logger.debug({ channel });
 });
 
 export { client };

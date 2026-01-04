@@ -13,15 +13,15 @@ import {
   sendPaginatedResponse,
 } from "../helpers/create-paginated-query.js";
 import { makePreview } from "../utils/make-preview.js";
-import { Prisma } from "../../generated/prisma/client.js";
 import { IMAGES_DIR } from "../config.js";
 import { IMAGE_FORMATS } from "../constants.js";
-import { getAppConfig } from "../cache/app-config.cache.js";
+import { PromoCatImageModel } from "../../generated/prisma/models.js";
+import { AppConfigService } from "../services/app-config.service.js";
 
 export const PROMOCAT_IMAGES_DIR = path.join(IMAGES_DIR, "promocats");
 
 export async function getPromoCatsSettings(req: Request, res: Response) {
-  const config = await getAppConfig();
+  const config = await AppConfigService.getAppConfig();
 
   return res.json({
     channel_id: config?.promocats_channel_id ?? null,
@@ -32,11 +32,9 @@ export async function getPromoCatsSettings(req: Request, res: Response) {
 export async function setPromoCatsSettings(req: Request, res: Response) {
   const { channel_id, post_time } = req.body;
 
-  await prisma.appConfig.updateMany({
-    data: {
-      promocats_channel_id: channel_id ?? undefined,
-      promocats_post_time: post_time ?? undefined,
-    },
+  await AppConfigService.updateAppConfig({
+    promocats_channel_id: channel_id ?? undefined,
+    promocats_post_time: post_time ?? undefined,
   });
 
   return res.json({});
@@ -56,7 +54,7 @@ export async function uploadPromoCatImages(req: Request, res: Response) {
   await mkdir(PROMOCAT_IMAGES_DIR, { recursive: true });
 
   const fileBuffer = req.file.buffer;
-  const previews: Prisma.PromoCatImageModel[] = [];
+  const previews: PromoCatImageModel[] = [];
 
   await new Promise((resolve, reject) => {
     const tasks: Promise<void>[] = [];

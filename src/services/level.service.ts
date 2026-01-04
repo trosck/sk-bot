@@ -1,7 +1,6 @@
 import { NodeCache } from "@cacheable/node-cache";
-
-import { prisma } from "../prisma.js";
 import { LevelModel } from "../../generated/prisma/models.js";
+import { prisma } from "../prisma.js";
 
 const KEY = "level";
 const levelCache = new NodeCache<LevelModel[]>({
@@ -16,12 +15,14 @@ async function updateLevelCache() {
   return levels;
 }
 
-export async function getLevel() {
-  const levels = levelCache.get(KEY);
+export class LevelService {
+  static async getLevels() {
+    const levels = levelCache.get(KEY);
 
-  if (!levels) {
-    return updateLevelCache();
+    if (!levels) {
+      return updateLevelCache();
+    }
+
+    return levels;
   }
-
-  return levels;
 }

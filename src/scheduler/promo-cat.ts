@@ -14,7 +14,7 @@ import { logger } from "../logger.js";
 import { prisma } from "../prisma.js";
 
 import { PROMOCAT_IMAGES_DIR } from "../api/promo-cats.js";
-import { getAppConfig } from "../cache/app-config.cache.js";
+import { AppConfigService } from "../services/app-config.service.js";
 
 function isItTimeToPost(postTime: Date, nowTime: Date) {
   const isHoursSame = postTime.getHours() === nowTime.getHours();
@@ -28,7 +28,7 @@ function isItTimeToPost(postTime: Date, nowTime: Date) {
 }
 
 export async function schedulePromoCat() {
-  const config = await getAppConfig();
+  const config = await AppConfigService.getAppConfig();
 
   if (!config?.promocats_post_time) return;
   if (!config?.promocats_channel_id) return;
@@ -125,10 +125,8 @@ export async function schedulePromoCat() {
     components: [linkEmbed.toJSON()],
   });
 
-  await prisma.appConfig.updateMany({
-    data: {
-      promocats_last_posted: new Date(),
-    },
+  await AppConfigService.updateAppConfig({
+    promocats_last_posted: new Date(),
   });
 
   await prisma.promoCat.delete({

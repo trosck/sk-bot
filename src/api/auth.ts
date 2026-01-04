@@ -3,7 +3,7 @@ import { prisma } from "../prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET_ACCESS, JWT_SECRET_REFRESH, NODE_ENV } from "../config.js";
-import { getAppConfig } from "../cache/app-config.cache.js";
+import { AppConfigService } from "../services/app-config.service.js";
 
 function getAccessToken() {
   return jwt.sign({ username: "admin" }, JWT_SECRET_ACCESS, {
@@ -24,7 +24,7 @@ export async function login(req: Request, res: Response) {
     return res.status(400).json({ error: "No password 😠" });
   }
 
-  const config = await getAppConfig();
+  const config = await AppConfigService.getAppConfig();
 
   const adminPassword = config?.admin_password;
   if (!adminPassword) {

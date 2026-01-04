@@ -1,9 +1,9 @@
 import type { Message, User } from "discord.js";
 import { UserNotFound } from "../errors/UserNotFound.js";
 import { prisma } from "../prisma.js";
-import { getLevel } from "../cache/level.cache.js";
 import { UserModel } from "../../generated/prisma/models.js";
 import { logger } from "../logger.js";
+import { LevelService } from "../services/level.service.js";
 
 const rewards = {
   message: 10,
@@ -14,7 +14,7 @@ export class UserXpReward {
     let userLevel = user.level;
     const totalXp = user.total_xp + xp;
 
-    const level = await getLevel();
+    const level = await LevelService.getLevels();
     const levelIndex = level.findIndex((item) => item.id === userLevel);
 
     const nextLevel = level[levelIndex + 1];

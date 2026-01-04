@@ -1,4 +1,4 @@
-import type { Guild } from "discord.js";
+import type { Guild, GuildChannel } from "discord.js";
 
 import { logger } from "../../logger.js";
 import { upsertChannelsBatch } from "../../helpers/upsert-channels-batch.js";
@@ -53,5 +53,35 @@ export class GuildChannelSyncService {
     }
 
     logger.info("Guild channels updated");
+  }
+
+  static async createChannel(channel: GuildChannel) {
+    await prisma.channel.create({
+      data: {
+        id: channel.id,
+        name: channel.name,
+        type: channel.type,
+      },
+    });
+  }
+
+  static async updateChannel(channel: GuildChannel) {
+    await prisma.channel.update({
+      data: {
+        name: channel.name,
+        type: channel.type,
+      },
+      where: {
+        id: channel.id,
+      },
+    });
+  }
+
+  static async deleteChannel(channel: GuildChannel) {
+    await prisma.channel.delete({
+      where: {
+        id: channel.id,
+      },
+    });
   }
 }

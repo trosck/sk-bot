@@ -1,4 +1,9 @@
-import { Client, GatewayIntentBits } from "discord.js";
+import {
+  Client,
+  GatewayIntentBits,
+  GuildChannel,
+  GuildMember,
+} from "discord.js";
 
 import { logger } from "./logger.js";
 import { UserXpReward } from "./RewardSystem/UserXpReward.js";
@@ -7,6 +12,7 @@ import { GuildChannelSyncService } from "./services/guild/guild-channel-sync.ser
 import { GuildMemberSyncService } from "./services/guild/guild-member-sync.service.js";
 import { GuildCommandSyncService } from "./services/guild/guild-command-sync.service.js";
 import { prisma } from "./prisma.js";
+import { GuildRoleSyncService } from "./services/guild/guild-role-sync.service.js";
 
 const client = new Client({
   // https://discord.com/developers/docs/events/gateway#list-of-intents
@@ -25,19 +31,64 @@ client.on("clientReady", async () => {
 
   const guild = client.guilds.cache.at(0);
   if (guild) {
-    await GuildMemberSyncService.updateUsers(guild);
+    await GuildRoleSyncService.syncRoles(guild);
+    await GuildMemberSyncService.syncUsers(guild);
     await GuildChannelSyncService.syncChannels(guild);
   }
 });
 
-// client.on("guildMemberAdd", async (member) => {
-//   await prisma.user.create({
-//     data: {
-//       avatar: member.avatar,
-//       discord_id: member.id,
-//     },
-//   });
-// });
+/** Roles */
+
+client.on("roleCreate", async (role) => {
+  await GuildRoleSyncService.addRole(role);
+  logger.debug(`Added role ${role.name}`);
+});
+
+client.on("roleUpdate", async (role) => {
+  await GuildRoleSyncService.updateRole(role);
+  logger.debug(`Updated role ${role.name}`);
+});
+
+client.on("roleDelete", async (role) => {
+  await GuildRoleSyncService.deleteRole(role);
+  logger.debug(`Deleted role ${role.name}`);
+});
+
+/** Users */
+
+client.on("guildMemberAdd", async (member) => {
+  await GuildMemberSyncService.addUser(member);
+  logger.debug(`Added user ${member.user.username}`);
+});
+
+client.on("guildMemberUpdate", async (member) => {
+  await GuildMemberSyncService.updateUser(member as GuildMember);
+  logger.debug(`Updated user ${member.user.username}`);
+});
+
+client.on("guildMemberRemove", async (member) => {
+  await GuildMemberSyncService.deleteUser(member as GuildMember);
+  logger.debug(`Deleted user ${member.user.username}`);
+});
+
+/** Channels */
+
+client.on("channelCreate", async (channel) => {
+  await GuildChannelSyncService.createChannel(channel);
+  logger.debug(`Added channel ${channel.name}`);
+});
+
+client.on("channelUpdate", async (channel) => {
+  await GuildChannelSyncService.updateChannel(channel as GuildChannel);
+  logger.debug(`Updated channel ${channel.id}`);
+});
+
+client.on("channelDelete", async (channel) => {
+  await GuildChannelSyncService.createChannel(channel as GuildChannel);
+  logger.debug(`De channel ${channel.id}`);
+});
+
+/** */
 
 client.on("messageCreate", async (message) => {
   logger.debug(`${message.author.displayName}: ${message.content}`);
@@ -53,6 +104,7 @@ client.on("voiceStateUpdate", async (state) => {
 
 client.on("guildCreate", async (guild) => {
   await GuildInitializationService.init(guild);
+  await GuildRoleSyncService.syncRoles(guild);
   await GuildChannelSyncService.syncChannels(guild);
   await GuildCommandSyncService.syncCommands(guild);
 });

@@ -1,5 +1,6 @@
 import {
   APIGuildMember,
+  GuildMember,
   Routes,
   type Guild,
   type RESTGetAPIGuildMemberResult,
@@ -12,7 +13,6 @@ import {
   upsertUsersBatch,
   type UserSyncInput,
 } from "../../helpers/upsert-users-batch.js";
-import { writeFileSync } from "node:fs";
 
 /**
  * guild members pagination limit (1-1000)
@@ -44,14 +44,27 @@ async function fetchUsers(
   }
 }
 
-function memberToUser(member: APIGuildMember) {
+function apiMemberToUser(member: APIGuildMember) {
   return {
     avatar: member.user.avatar,
     discord_id: member.user.id,
     global_name: member.user.global_name,
     username: member.user.username,
-    nickname: member.nick,
+    nickname: member.nick ?? null,
     roles: member.roles,
+  };
+}
+
+function guildMemberToUser(member: GuildMember) {
+  const roles = Array.from(member.roles.cache.values()).map((role) => role.id);
+
+  return {
+    avatar: member.avatar,
+    discord_id: member.id,
+    global_name: member.user.globalName,
+    username: member.user.username,
+    nickname: member.nickname,
+    roles: roles,
   };
 }
 
@@ -59,18 +72,41 @@ export class GuildMemberSyncService {
   static async initUsers(guild: Guild) {
     await fetchUsers(guild.id, async (users) => {
       await prisma.user.createMany({
-        data: users.map(memberToUser),
+        data: users.map(apiMemberToUser),
       });
     });
   }
 
-  static async updateUsers(guild: Guild) {
+  static async syncUsers(guild: Guild) {
     await fetchUsers(guild.id, async (users) => {
-      const userList: UserSyncInput[] = users.map(memberToUser);
+      const userList: UserSyncInput[] = users.map(apiMemberToUser);
 
       await upsertUsersBatch(userList, LIMIT);
     });
 
     logger.info("User list updated");
+  }
+
+  static async addUser(user: GuildMember) {
+    await prisma.user.create({
+      data: guildMemberToUser(user),
+    });
+  }
+
+  static async updateUser(user: GuildMember) {
+    await prisma.user.update({
+      data: guildMemberToUser(user),
+      where: {
+        discord_id: user.id,
+      },
+    });
+  }
+
+  static async deleteUser(user: GuildMember) {
+    await prisma.user.delete({
+      where: {
+        discord_id: user.id,
+      },
+    });
   }
 }

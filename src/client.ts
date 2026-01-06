@@ -12,6 +12,7 @@ import { GuildChannelSyncService } from "./services/guild-channel-sync.service.j
 import { GuildMemberSyncService } from "./services/guild-member-sync.service.js";
 import { GuildCommandSyncService } from "./services/guild-command-sync.service.js";
 import { GuildRoleSyncService } from "./services/guild-role-sync.service.js";
+import { GuildVoiceSync } from "./services/guild-voice-sync.service.js";
 
 const client = new Client({
   // https://discord.com/developers/docs/events/gateway#list-of-intents
@@ -25,7 +26,7 @@ const client = new Client({
   ],
 });
 
-client.on("clientReady", async () => {
+client.once("clientReady", async () => {
   logger.info(`Logged in as ${client.user?.tag}`);
 
   const guild = client.guilds.cache.at(0);
@@ -121,16 +122,13 @@ client.on("channelDelete", async (channel) => {
 
 /** */
 
+client.on("voiceStateUpdate", async (oldState, newState) => {
+  await GuildVoiceSync.handleVoiceStateUpdate(oldState, newState);
+});
+
 client.on("messageCreate", async (message) => {
   logger.debug(`${message.author.displayName}: ${message.content}`);
   await UserXpReward.messageActivity(message);
-});
-
-client.on("voiceStateUpdate", async (state) => {
-  // const guild = client.guilds.cache.at(0);
-  // if (guild) {
-  //   await GuildStateManager.logChannels(guild);
-  // }
 });
 
 client.on("guildCreate", async (guild) => {

@@ -74,7 +74,6 @@ model Channel {
 
 model VoiceSession {
   user_id    String   @id @unique
-  channel_id String   @unique
   started_at DateTime @default(now())
 }
 

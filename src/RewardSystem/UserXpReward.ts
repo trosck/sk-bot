@@ -1,12 +1,13 @@
-import type { Message, User } from "discord.js";
-import { UserNotFound } from "../errors/UserNotFound.js";
+import type { GuildMember, Message } from "discord.js";
 import { prisma } from "../prisma.js";
 import { UserModel } from "../../generated/prisma/models.js";
 import { logger } from "../logger.js";
 import { LevelService } from "../services/level.service.js";
+import { GuildMemberSyncService } from "../services/guild-member-sync.service.js";
 
 const rewards = {
   message: 10,
+  voice: 20,
 };
 
 export class UserXpReward {
@@ -42,18 +43,22 @@ export class UserXpReward {
       return;
     }
 
-    const user = await prisma.user.findFirst({
-      where: {
-        discord_id: message.author.id,
-      },
-    });
+    const userModel = await GuildMemberSyncService.getOrCreateUser(message.member!);
 
-    if (!user) {
-      throw new UserNotFound();
-    }
-
-    await UserXpReward.rewardUser(user, rewards.message);
+    await UserXpReward.rewardUser(userModel, rewards.message);
   }
 
-  async voiceActivity(user: User) {}
+  /**
+   * @param user - User
+   * @param duration - Duration in seconds
+   */
+  static async voiceActivity(member: GuildMember, duration: number) {
+    if (member.user.bot) {
+      return;
+    }
+
+    const userModel = await GuildMemberSyncService.getOrCreateUser(member);
+
+    await this.rewardUser(userModel, Math.floor(duration / 60 * rewards.voice));
+  }
 }

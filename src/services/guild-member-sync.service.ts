@@ -87,10 +87,26 @@ export class GuildMemberSyncService {
     logger.info("User list updated");
   }
 
+  static async getOrCreateUser(user: GuildMember) {
+    let userModel = await prisma.user.findFirst({
+      where: {
+        discord_id: user.id,
+      },
+    });
+
+    if (!userModel) {
+      userModel = await this.addUser(user);
+    }
+
+    return userModel;
+  }
+
   static async addUser(user: GuildMember) {
-    await prisma.user.create({
+    const userModel = await prisma.user.create({
       data: guildMemberToUser(user),
     });
+
+    return userModel;
   }
 
   static async updateUser(user: GuildMember) {

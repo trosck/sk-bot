@@ -72,6 +72,12 @@ model Channel {
   scheduledPosts ScheduledPost[]
 }
 
+model VoiceSession {
+  user_id    String   @id @unique
+  channel_id String   @unique
+  started_at DateTime @default(now())
+}
+
 enum ScheduledPostStatus {
   SCHEDULED
   PROCESSING

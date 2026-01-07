@@ -22,18 +22,21 @@ export async function giveUserXP(req: Request, res: Response) {
   return res.json(user);
 }
 
+const userSelect = {
+  id: true,
+  discord_id: true,
+  username: true,
+  roles: true,
+  total_xp: true,
+  level: true,
+  cookies: true,
+  voice_chat: true,
+  avatar: true,
+};
+
 export async function getUserById(req: Request, res: Response) {
   const user = await prisma.user.findFirst({
-    select: {
-      id: true,
-      discord_id: true,
-      username: true,
-      roles: true,
-      total_xp: true,
-      level: true,
-      cookies: true,
-      avatar: true,
-    },
+    select: userSelect,
     where: {
       discord_id: req.params.id,
     },
@@ -45,16 +48,7 @@ export async function getUserById(req: Request, res: Response) {
 export async function getUsers(req: Request, res: Response) {
   const { data, limit } = createPaginatedQuery(
     req,
-    {
-      discord_id: true,
-      id: true,
-      username: true,
-      roles: true,
-      total_xp: true,
-      level: true,
-      cookies: true,
-      avatar: true,
-    },
+    userSelect,
     {
       id: "asc",
     }

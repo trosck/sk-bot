@@ -32,6 +32,8 @@ export class GuildVoiceSync {
       },
     });
 
+    logger.debug(`Started voice session for ${member.user.username}`);
+
     return session;
   }
 
@@ -49,7 +51,7 @@ export class GuildVoiceSync {
     const now = new Date();
     const startedAt = session.started_at;
     const duration = now.getTime() - startedAt.getTime();
-    const durationSeconds = duration / 1000;
+    const durationSeconds = Math.floor(duration / 1000);
 
     await prisma.voiceSession.delete({
       where: {
@@ -62,26 +64,26 @@ export class GuildVoiceSync {
         discord_id: member.user.id,
       },
       data: {
-        voice_chat: durationSeconds,
+        voice_chat: {
+          increment: durationSeconds,
+        },
       },
     });
 
     await UserXpReward.voiceActivity(member, durationSeconds);
+
+    logger.debug(`Ended voice session for ${member.user.username} with duration ${durationSeconds} seconds`);
 
     return duration;
   }
 
   static async handleVoiceStateUpdate(oldState: VoiceState, newState: VoiceState) {
     if (isMuted(newState) || isLeft(oldState, newState)) {
-      await this.endSession(newState.member!);
-      logger.debug(`Ended voice session for ${newState.member!.user.username} in ${oldState.channel!.name}`);
-      return;
+      return await this.endSession(newState.member!);
     }
 
     if (isJoined(oldState, newState) || isUnmuted(oldState, newState)) {
-      await this.startSession(newState.member!);
-      logger.debug(`Started voice session for ${newState.member!.user.username} in ${newState.channel!.name}`);
-      return;
+      return await this.startSession(newState.member!);
     }
   }
 
@@ -92,7 +94,7 @@ export class GuildVoiceSync {
 
     const activeMembersMap = new Map<string, GuildMember>();
 
-    for (const state of guild.voiceStates.cache.values()) {
+    for (const state of await guild.voiceStates.cache.values()) {
       const member = state.member!;
 
       if (!isMuted(state)) {
@@ -107,13 +109,16 @@ export class GuildVoiceSync {
       }
     }
 
+    await guild.members.fetch();
+
     for (const session of sessions) {
       const activeMember = activeMembersMap.get(session.user_id);
+
       if (activeMember) {
         continue;
       }
 
-      const member = guild.members.cache.get(session.user_id);
+      const member = await guild.members.cache.get(session.user_id);
       if (!member) {
         continue;
       }

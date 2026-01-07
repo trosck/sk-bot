@@ -17,14 +17,7 @@ import { PROMOCAT_IMAGES_DIR } from "../api/promo-cats.js";
 import { AppConfigService } from "../services/app-config.service.js";
 
 function isItTimeToPost(postTime: Date, nowTime: Date) {
-  const isHoursSame = postTime.getHours() === nowTime.getHours();
-
-  const minutesDifference =
-    (nowTime.getTime() - postTime.getTime()) / 1000 / 60;
-
-  const isMinutesWithinRange = minutesDifference >= 0 && minutesDifference <= 5;
-
-  return isHoursSame && isMinutesWithinRange;
+  return nowTime > postTime;
 }
 
 export async function schedulePromoCat() {
@@ -33,20 +26,19 @@ export async function schedulePromoCat() {
   if (!config?.promocats_post_time) return;
   if (!config?.promocats_channel_id) return;
 
-  const postTime = new Date(config.promocats_post_time);
   const nowTime = new Date();
-  postTime.setDate(nowTime.getDate());
-  postTime.setMonth(nowTime.getMonth());
-  postTime.setFullYear(nowTime.getFullYear());
 
   const lastPosted = config.promocats_last_posted;
   if (lastPosted) {
-    const lastPostedDate = new Date(lastPosted);
-
-    if (lastPostedDate.getDate() === nowTime.getDate()) {
+    if (lastPosted.getDate() === nowTime.getDate()) {
       return;
     }
   }
+
+  const postTime = new Date(config.promocats_post_time);
+  postTime.setDate(nowTime.getDate());
+  postTime.setMonth(nowTime.getMonth());
+  postTime.setFullYear(nowTime.getFullYear());
 
   const itsTimeToPost = isItTimeToPost(postTime, nowTime);
 
@@ -87,11 +79,9 @@ export async function schedulePromoCat() {
     return logger.error("no image for posting promocat :(");
   }
 
-  const link = `https://skin.club/en?utm_promo=${
-    promocat.promocode
-  }&utm_source=discord&utm_medium=promocats&utm_campaign=post${nowTime.getDate()}${
-    nowTime.getMonth() + 1
-  }${nowTime.getFullYear()}`;
+  const link = `https://skin.club/en?utm_promo=${promocat.promocode
+    }&utm_source=discord&utm_medium=promocats&utm_campaign=post${nowTime.getDate()}${nowTime.getMonth() + 1
+    }${nowTime.getFullYear()}`;
 
   const imagePath = path.join(PROMOCAT_IMAGES_DIR, promocatImage.name);
 

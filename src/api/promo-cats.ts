@@ -141,7 +141,11 @@ export async function uploadPromoCatPromocodes(req: Request, res: Response) {
 
   const promocodes = [];
   for (const row of dataRows) {
-    const discount = parseInt(row[0]);
+    let discount = parseFloat(row[0]);
+    if (discount < 1) {
+      discount *= 100;
+    }
+
     const promocode = row[1];
     const dateRaw = row[2].split("/");
     const date = new Date(
@@ -151,8 +155,8 @@ export async function uploadPromoCatPromocodes(req: Request, res: Response) {
     );
 
     promocodes.push({
+      discount: parseInt(discount.toFixed(0)),
       promocode,
-      discount,
       date,
     });
   }

@@ -8,7 +8,7 @@ const appConfigCache = new NodeCache<AppConfigModel>({
   stdTTL: "30m",
 });
 
-async function updateLevelCache() {
+async function updateAppConfigCache() {
   const config = await prisma.appConfig.findFirst();
 
   if (!config) {
@@ -25,7 +25,7 @@ export class AppConfigService {
     const config = appConfigCache.get(KEY);
 
     if (!config) {
-      return updateLevelCache();
+      return updateAppConfigCache();
     }
 
     return config;
@@ -43,5 +43,7 @@ export class AppConfigService {
     await prisma.appConfig.updateMany({
       data: config,
     });
+
+    await updateAppConfigCache();
   }
 }

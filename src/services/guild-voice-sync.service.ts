@@ -49,6 +49,7 @@ export class GuildVoiceSync {
     const now = new Date();
     const startedAt = session.started_at;
     const duration = now.getTime() - startedAt.getTime();
+    const durationSeconds = duration / 1000;
 
     await prisma.voiceSession.delete({
       where: {
@@ -56,7 +57,16 @@ export class GuildVoiceSync {
       },
     });
 
-    await UserXpReward.voiceActivity(member, duration / 1000);
+    await prisma.user.update({
+      where: {
+        discord_id: member.user.id,
+      },
+      data: {
+        voice_chat: durationSeconds,
+      },
+    });
+
+    await UserXpReward.voiceActivity(member, durationSeconds);
 
     return duration;
   }

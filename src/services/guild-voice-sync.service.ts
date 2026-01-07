@@ -121,5 +121,7 @@ export class GuildVoiceSync {
       await this.endSession(member);
       logger.debug(`Ended voice session for ${member.user.username}`);
     }
+
+    logger.info(`Voice sessions synced`);
   }
 }

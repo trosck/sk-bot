@@ -84,7 +84,7 @@ export class GuildMemberSyncService {
       await upsertUsersBatch(userList, LIMIT);
     });
 
-    logger.info("User list updated");
+    logger.info("Users synced");
   }
 
   static async getOrCreateUser(user: GuildMember) {

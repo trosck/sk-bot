@@ -52,7 +52,7 @@ export class GuildChannelSyncService {
       logger.debug(`deleted ${deletedChannels.length} channels`);
     }
 
-    logger.info("Guild channels updated");
+    logger.info("Channels synced");
   }
 
   static async createChannel(channel: GuildChannel) {

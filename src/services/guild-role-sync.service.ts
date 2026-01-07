@@ -9,7 +9,7 @@ export class GuildRoleSyncService {
 
     await upsertRolesBatch(Array.from(roles.values()), 100);
 
-    logger.info("Role list updated");
+    logger.info("Roles synced");
   }
 
   static async addRole(role: Role) {

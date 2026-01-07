@@ -73,9 +73,10 @@ client.on("guildMemberAdd", async (member) => {
   } catch (err) {
     /**
      * There is no (for now) good mechanism for deleting
-     * users that leaved/kicked so can be rejoined user
+     * users that leaved/kicked when bot was offline
+     * so it can be rejoined user
      */
-    logger.error("Can't add user");
+    logger.error(`Can't add user "${member.user.username}" #${member.user.id}`);
   }
 });
 

@@ -30,7 +30,10 @@ export async function schedulePromoCat() {
 
   const lastPosted = config.promocats_last_posted;
   if (lastPosted) {
-    if (lastPosted.getDate() === nowTime.getDate()) {
+    if (
+      lastPosted.getDate() === nowTime.getDate() &&
+      lastPosted.getMonth() === nowTime.getMonth()
+    ) {
       return;
     }
   }
@@ -79,9 +82,11 @@ export async function schedulePromoCat() {
     return logger.error("no image for posting promocat :(");
   }
 
-  const link = `https://skin.club/en?utm_promo=${promocat.promocode
-    }&utm_source=discord&utm_medium=promocats&utm_campaign=post${nowTime.getDate()}${nowTime.getMonth() + 1
-    }${nowTime.getFullYear()}`;
+  const link = `https://skin.club/en?utm_promo=${
+    promocat.promocode
+  }&utm_source=discord&utm_medium=promocats&utm_campaign=post${nowTime.getDate()}${
+    nowTime.getMonth() + 1
+  }${nowTime.getFullYear()}`;
 
   const imagePath = path.join(PROMOCAT_IMAGES_DIR, promocatImage.name);
 

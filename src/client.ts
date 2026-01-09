@@ -32,10 +32,10 @@ client.once("clientReady", async () => {
   const guild = client.guilds.cache.at(0);
   if (guild) {
     logger.info("Syncing guild...");
-    await GuildVoiceSync.syncSessions(guild);
-    await GuildRoleSyncService.syncRoles(guild);
     await GuildMemberSyncService.syncUsers(guild);
     await GuildChannelSyncService.syncChannels(guild);
+    await GuildRoleSyncService.syncRoles(guild);
+    await GuildVoiceSync.syncSessions(guild);
     logger.info("Guild synced");
   } else {
     logger.error("Guild not found");
@@ -140,11 +140,11 @@ client.on("messageCreate", async (message) => {
 client.on("guildCreate", async (guild) => {
   await GuildInitializationService.init(guild);
 
-  await GuildVoiceSync.syncSessions(guild);
-  await GuildRoleSyncService.syncRoles(guild);
+  await GuildCommandSyncService.syncCommands(guild);
   await GuildMemberSyncService.syncUsers(guild);
   await GuildChannelSyncService.syncChannels(guild);
-  await GuildCommandSyncService.syncCommands(guild);
+  await GuildRoleSyncService.syncRoles(guild);
+  await GuildVoiceSync.syncSessions(guild);
 });
 
 export { client };

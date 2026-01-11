@@ -5,14 +5,14 @@ import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI, FRONTEN
 import { AppConfigService } from "../services/app-config.service.js";
 import { User } from "discord.js";
 
-function getAccessToken(username: string) {
-  return jwt.sign({ username }, JWT_SECRET_ACCESS, {
+function getAccessToken(id: string) {
+  return jwt.sign({ id }, JWT_SECRET_ACCESS, {
     expiresIn: "15m",
   });
 }
 
-function getRefreshToken(username: string) {
-  return jwt.sign({ username }, JWT_SECRET_REFRESH, {
+function getRefreshToken(id: string) {
+  return jwt.sign({ id }, JWT_SECRET_REFRESH, {
     expiresIn: "30d",
   });
 }
@@ -169,8 +169,8 @@ export async function discordCallback(req: Request, res: Response) {
 
     const userData: User = await userRes.json();
 
-    const accessToken = getAccessToken(userData.username);
-    const refreshToken = getRefreshToken(userData.username);
+    const accessToken = getAccessToken(userData.id);
+    const refreshToken = getRefreshToken(userData.id);
 
     setTokens(res, accessToken, refreshToken);
 

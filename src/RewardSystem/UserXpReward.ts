@@ -43,10 +43,14 @@ export class UserXpReward {
       return;
     }
 
-    // message.member is guaranteed to be non-null here because messageActivity is only called
-    // when a user writes in a Discord channel (guild messages) and never for DMs to the bot.
-    // The messageCreate event handler in client.ts only processes guild messages.
-    const userModel = await GuildMemberSyncService.getOrCreateUser(message.member!);
+    if (!message.member) {
+      logger.error(message, "no member in message object");
+      return;
+    }
+
+    const userModel = await GuildMemberSyncService.getOrCreateUser(
+      message.member
+    );
 
     await UserXpReward.rewardUser(userModel, rewards.message);
   }
@@ -62,6 +66,9 @@ export class UserXpReward {
 
     const userModel = await GuildMemberSyncService.getOrCreateUser(member);
 
-    await this.rewardUser(userModel, Math.floor(duration / 60 * rewards.voice));
+    await this.rewardUser(
+      userModel,
+      Math.floor((duration / 60) * rewards.voice)
+    );
   }
 }

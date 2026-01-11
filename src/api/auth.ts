@@ -92,7 +92,7 @@ export async function refresh(req: Request, res: Response) {
     return res.status(401).json({ error: "Invalid refresh token" });
   }
 
-  setTokens(res, getAccessToken(decoded.username), getRefreshToken(decoded.username));
+  setTokens(res, getAccessToken(decoded.id), getRefreshToken(decoded.id));
 
   return res.json({});
 }

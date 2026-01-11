@@ -8,11 +8,11 @@ export function WithCache(key: string) {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = async function (...args: any[]) {
       const cacheKey = key + JSON.stringify(args);
 
       if (!cache.has(cacheKey)) {
-        const result = originalMethod.apply(this, args);
+        const result = await originalMethod.apply(this, args);
 
         cache.set(cacheKey, result);
 

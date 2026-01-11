@@ -5,7 +5,7 @@ import { pinoHttp } from "pino-http";
 import { verifyKeyMiddleware } from "discord-interactions";
 
 import { logger } from "./logger.js";
-import { DISCORD_TOKEN, NODE_ENV, PUBLIC_KEY } from "./config.js";
+import { DISCORD_TOKEN, isDev, NODE_ENV, PUBLIC_KEY } from "./config.js";
 import { errorMiddleware } from "./middleware.js";
 import { client, initDiscordGateway } from "./client.js";
 import handleDiscordInteractions from "./interactions/index.js";
@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 app.use(errorMiddleware);
 
 app.listen(PORT, () => {
-  if (NODE_ENV === "development") {
+  if (isDev) {
     logger.debug(`
 ⚡ Server is up!
 

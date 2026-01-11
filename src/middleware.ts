@@ -5,11 +5,9 @@ import type {
   RequestHandler,
   ErrorRequestHandler,
 } from "express";
-import { JWT_SECRET_ACCESS, NODE_ENV } from "./config.js";
+import { isDev, JWT_SECRET_ACCESS } from "./config.js";
 import { logger } from "./logger.js";
 import jwt from "jsonwebtoken";
-
-const isDev = NODE_ENV === "development";
 
 export const logMiddleware: RequestHandler = (
   req: Request,
@@ -75,12 +73,10 @@ export const errorMiddleware: ErrorRequestHandler = (err, req, res, next) => {
 };
 
 export const authMiddleware: RequestHandler = (req, res, next) => {
-  const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "No token provided" });
+  const token = req.cookies?.access_token;
+  if (!token) {
+    return res.status(401).json({ error: "No access token 🫥" });
   }
-
-  const token = header.split(" ")[1];
 
   try {
     jwt.verify(token, JWT_SECRET_ACCESS);

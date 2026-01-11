@@ -1,20 +1,57 @@
 import { Request, Response } from "express";
-import { prisma } from "../prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET_ACCESS, JWT_SECRET_REFRESH, NODE_ENV } from "../config.js";
+import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI, FRONTEND_URL, isProd, JWT_SECRET_ACCESS, JWT_SECRET_REFRESH } from "../config.js";
 import { AppConfigService } from "../services/app-config.service.js";
+import { User } from "discord.js";
 
-function getAccessToken() {
-  return jwt.sign({ username: "admin" }, JWT_SECRET_ACCESS, {
+function getAccessToken(username: string) {
+  return jwt.sign({ username }, JWT_SECRET_ACCESS, {
     expiresIn: "15m",
   });
 }
 
-function getRefreshToken() {
-  return jwt.sign({ username: "admin" }, JWT_SECRET_REFRESH, {
+function getRefreshToken(username: string) {
+  return jwt.sign({ username }, JWT_SECRET_REFRESH, {
     expiresIn: "30d",
   });
+}
+
+function setTokens(res: Response, accessToken: string, refreshToken: string) {
+  res.cookie("refresh_token", refreshToken, {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: isProd,
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
+
+  res.cookie("access_token", accessToken, {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: isProd,
+    maxAge: 15 * 60 * 1000,
+  });
+}
+
+export async function getMe(req: Request, res: Response) {
+  const token = req.cookies?.access_token;
+  if (!token) {
+    return res.status(401).json({ error: "No access token 🫥" });
+  }
+
+  try {
+    jwt.verify(token, JWT_SECRET_ACCESS);
+  } catch (e) {
+    return res.status(401).json({ error: "Invalid access token" });
+  }
+
+  return res.json({});
+}
+
+export async function logout(req: Request, res: Response) {
+  res.clearCookie("refresh_token");
+  res.clearCookie("access_token");
+  return res.json({});
 }
 
 export async function login(req: Request, res: Response) {
@@ -36,16 +73,9 @@ export async function login(req: Request, res: Response) {
     return res.status(400).json({ error: "Invalid credentials 😞" });
   }
 
-  const refreshToken = getRefreshToken();
+  setTokens(res, getAccessToken("admin"), getRefreshToken("admin"));
 
-  res.cookie("refresh_token", refreshToken, {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: NODE_ENV === "production",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  });
-
-  return res.json({ access_token: getAccessToken() });
+  return res.json({});
 }
 
 export async function refresh(req: Request, res: Response) {
@@ -54,11 +84,98 @@ export async function refresh(req: Request, res: Response) {
     return res.status(401).json({ error: "No refresh token 🫥" });
   }
 
+  let decoded: any;
   try {
-    jwt.verify(token, JWT_SECRET_REFRESH);
+    decoded = jwt.verify(token, JWT_SECRET_REFRESH);
   } catch (e) {
     return res.status(401).json({ error: "Invalid refresh token" });
   }
 
-  return res.json({ access_token: getAccessToken() });
+  setTokens(res, getAccessToken(decoded.username), getRefreshToken(decoded.username));
+
+  return res.json({});
+}
+
+export async function discordLogin(req: Request, res: Response) {
+  const state = crypto.randomUUID();
+
+  res.cookie("oauth_state", state, {
+    httpOnly: true,
+    secure: isProd,
+    maxAge: 15 * 60 * 1000
+  });
+
+  const params = new URLSearchParams({
+    client_id: DISCORD_CLIENT_ID,
+    redirect_uri: DISCORD_REDIRECT_URI,
+    response_type: "code",
+    scope: "identify guilds",
+    state: state,
+  });
+
+  res.redirect(
+    `https://discord.com/oauth2/authorize?${params.toString()}`
+  );
+}
+
+export async function discordCallback(req: Request, res: Response) {
+  const { code, state } = req.query;
+
+  const savedState = req.cookies.oauth_state;
+
+  if (!code || !state || savedState !== state) {
+    return res.status(400).json({ error: "No code provided or invalid state" });
+  }
+
+  res.clearCookie("oauth_state");
+
+  try {
+    const tokenRes = await fetch(
+      "https://discord.com/api/oauth2/token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          client_id: DISCORD_CLIENT_ID,
+          client_secret: DISCORD_CLIENT_SECRET,
+          redirect_uri: DISCORD_REDIRECT_URI,
+          grant_type: "authorization_code",
+          code: code as string,
+        })
+      }
+    );
+
+    if (!tokenRes.ok) {
+      return res.status(400).json({ error: "Failed to get token" });
+    }
+
+    const tokenData = await tokenRes.json();
+
+    const userRes = await fetch(
+      "https://discord.com/api/users/@me",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+        },
+      }
+    );
+
+    if (!userRes.ok) {
+      return res.status(400).json({ error: "Failed to get user" });
+    }
+
+    const userData: User = await userRes.json();
+
+    const accessToken = getAccessToken(userData.username);
+    const refreshToken = getRefreshToken(userData.username);
+
+    setTokens(res, accessToken, refreshToken);
+
+    return res.redirect(FRONTEND_URL);
+  } catch (err) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
 }

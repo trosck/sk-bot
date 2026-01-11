@@ -6,7 +6,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import { logger } from "./logger.js";
-import { NODE_ENV } from "./config.js";
+import { isDev, NODE_ENV } from "./config.js";
 import { errorMiddleware } from "./middleware.js";
 import { apiRouter } from "./api/index.js";
 
@@ -56,7 +56,7 @@ app.use((req, res, next) => {
 app.use(errorMiddleware);
 
 app.listen(PORT, () => {
-  if (NODE_ENV === "development") {
+  if (isDev) {
     logger.debug(`
 ⚡ Server is up!
 

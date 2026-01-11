@@ -18,9 +18,9 @@ import {
   uploadPromoCatImages,
   uploadPromoCatPromocodes,
 } from "./promo-cats.js";
-import { login, refresh } from "./auth.js";
+import { discordCallback, discordLogin, getMe, login, logout, refresh } from "./auth.js";
 import { authMiddleware } from "../middleware.js";
-import { NODE_ENV } from "../config.js";
+import { isProd } from "../config.js";
 
 const apiRouter = express.Router();
 
@@ -35,8 +35,13 @@ const upload = multer({
 /** Auth */
 apiRouter.post("/login", login);
 apiRouter.post("/refresh", refresh);
+apiRouter.post("/logout", logout);
+apiRouter.get("/me", getMe);
 
-if (NODE_ENV !== "development") {
+apiRouter.get("/discord/login", discordLogin);
+apiRouter.get("/discord/callback", discordCallback);
+
+if (isProd) {
   apiRouter.use(authMiddleware);
 }
 

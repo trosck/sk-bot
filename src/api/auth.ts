@@ -3,7 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI, FRONTEND_URL, isProd, JWT_SECRET_ACCESS, JWT_SECRET_REFRESH } from "../config.js";
 import { AppConfigService } from "../services/app-config.service.js";
-import { User } from "discord.js";
+import { APIGuild, User } from "discord.js";
+import { GuildMemberSyncService } from "../services/guild-member-sync.service.js";
 
 function getAccessToken(id: string) {
   return jwt.sign({ id }, JWT_SECRET_ACCESS, {
@@ -168,6 +169,40 @@ export async function discordCallback(req: Request, res: Response) {
     }
 
     const userData: User = await userRes.json();
+
+    const guildsRes = await fetch(
+      "https://discord.com/api/users/@me/guilds",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+        },
+      }
+    );
+
+    if (!guildsRes.ok) {
+      return res.status(400).json({ error: "Failed to get user guilds" });
+    }
+
+    const guildsData: APIGuild[] = await guildsRes.json();
+
+    const appConfig = await AppConfigService.getAppConfig();
+
+    const isInGuild = guildsData.some((guild) => appConfig.guild_id === guild.id);
+
+    if (!isInGuild) {
+      return res.status(400).json({ error: "User is not in the guild" });
+    }
+
+    const user = await GuildMemberSyncService.getUser(userData.id);
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    const hasAccessRole = appConfig.access_roles.some((role) => user.roles.includes(role));
+    if (!hasAccessRole) {
+      return res.status(400).json({ error: "User does not have access role" });
+    }
 
     const accessToken = getAccessToken(userData.id);
     const refreshToken = getRefreshToken(userData.id);

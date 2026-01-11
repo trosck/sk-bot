@@ -13,6 +13,7 @@ import {
   upsertUsersBatch,
   type UserSyncInput,
 } from "../helpers/upsert-users-batch.js";
+import { WithCache } from "../utils/with-cache.js";
 
 /**
  * guild members pagination limit (1-1000)
@@ -87,12 +88,17 @@ export class GuildMemberSyncService {
     logger.info("Users synced");
   }
 
-  static async getOrCreateUser(user: GuildMember) {
-    let userModel = await prisma.user.findFirst({
+  @WithCache("getUser")
+  static async getUser(userId: string) {
+    return await prisma.user.findFirst({
       where: {
-        discord_id: user.id,
+        discord_id: userId,
       },
     });
+  }
+
+  static async getOrCreateUser(user: GuildMember) {
+    let userModel = await this.getUser(user.id);
 
     if (!userModel) {
       userModel = await this.addUser(user);

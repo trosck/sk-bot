@@ -88,7 +88,6 @@ export class GuildMemberSyncService {
     logger.info("Users synced");
   }
 
-  @WithCache("getUser")
   static async getUser(userId: string) {
     return await prisma.user.findFirst({
       where: {

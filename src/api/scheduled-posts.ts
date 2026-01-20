@@ -4,7 +4,7 @@ import {
   createPaginatedQuery,
   sendPaginatedResponse,
 } from "../helpers/create-paginated-query.js";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { IMAGES_DIR } from "../config.js";
 import path from "node:path";
 import { makePreview } from "../utils/make-preview.js";
@@ -34,11 +34,21 @@ export async function createScheduledPost(req: Request, res: Response) {
 }
 
 async function deleteScheduledPostImagesByIds(mediaIds: number[]) {
-  return await prisma.scheduledPostImage.deleteMany({
+  const images = await prisma.scheduledPostImage.findMany({
+    where: {
+      id: { in: mediaIds },
+    },
+  })
+
+  await prisma.scheduledPostImage.deleteMany({
     where: {
       id: { in: mediaIds },
     },
   });
+
+  for (const image of images) {
+    await rm(path.join(IMAGES_DIR, image.path), { recursive: true });
+  }
 }
 
 export async function updateScheduledPost(req: Request, res: Response) {

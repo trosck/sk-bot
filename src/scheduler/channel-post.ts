@@ -5,6 +5,7 @@ import { prisma } from "../prisma.js";
 import path from "node:path";
 import { IMAGES_DIR } from "../config.js";
 import { withRetry } from "../utils/with-retry.js";
+import { rm } from "node:fs/promises";
 
 export async function scheduleChannelPost() {
   const posts = await prisma.scheduledPost.findMany({
@@ -77,6 +78,10 @@ export async function scheduleChannelPost() {
           status: "SENT",
         },
       });
+
+      for (const media of post.media ?? []) {
+        await rm(path.join(IMAGES_DIR, media.path), { recursive: true });
+      }
 
       logger.info(
         `Sent post ID${post.id} [${post.scheduled_at}] ${post.channel_id}`

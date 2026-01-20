@@ -22,27 +22,21 @@ export async function createScheduledPost(req: Request, res: Response) {
     },
   });
 
-  if (req.file) {
-    await uploadScheduledPostImage(post.id, req.file);
+  if (req.files?.length) {
+    const files = req.files as Express.Multer.File[]
+
+    for (const file of files) {
+      await uploadScheduledPostImage(post.id, file);
+    }
   }
 
   return res.json({});
 }
 
-async function deleteScheduledPostImage(postId: number) {
-  const image = await prisma.scheduledPostImage.findFirst({
+async function deleteScheduledPostImagesByIds(mediaIds: number[]) {
+  return await prisma.scheduledPostImage.deleteMany({
     where: {
-      scheduledPostId: postId,
-    },
-  });
-
-  if (!image) {
-    return;
-  }
-
-  await prisma.scheduledPostImage.delete({
-    where: {
-      id: image.id,
+      id: { in: mediaIds },
     },
   });
 }
@@ -54,24 +48,22 @@ export async function updateScheduledPost(req: Request, res: Response) {
     return res.status(400).json({ error: "no post id" });
   }
 
-  /**
-    * We don't write `media` to the ScheduledPost
-    * table because images for posts are stored
-    * in a separate ScheduledPostImage table
-    */
   const postData: Partial<ScheduledPostModel> = {
     text: req.body.text,
     scheduled_at: req.body.scheduled_at,
     channel_id: req.body.channel_id,
   };
 
-  if (req.body.media === "") {
-    await deleteScheduledPostImage(postId);
+  if (req.body.removed_media_ids) {
+    await deleteScheduledPostImagesByIds(req.body.removed_media_ids.split(",").map(Number));
   }
 
-  if (req.file) {
-    await deleteScheduledPostImage(postId);
-    await uploadScheduledPostImage(postId, req.file);
+  if (req.files?.length) {
+    const files = req.files as Express.Multer.File[]
+
+    for (const file of files) {
+      await uploadScheduledPostImage(postId, file);
+    }
   }
 
   await prisma.scheduledPost.update({

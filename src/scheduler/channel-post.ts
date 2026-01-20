@@ -53,12 +53,10 @@ export async function scheduleChannelPost() {
 
       const postData: any = {
         content: post.text,
+        files: []
       };
 
-      logger.info("Before media");
-
-      if (post.media?.length) {
-        const media = post.media[0];
+      for (const media of post.media ?? []) {
         const imageAttachment = new AttachmentBuilder(
           path.join(IMAGES_DIR, media.path),
           {
@@ -66,10 +64,8 @@ export async function scheduleChannelPost() {
           }
         );
 
-        postData.files = [imageAttachment];
+        postData.files.push(imageAttachment);
       }
-
-      logger.info("Before send");
 
       await withRetry(() => channel.send(postData));
 

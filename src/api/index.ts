@@ -55,12 +55,12 @@ apiRouter.get("/channels", getChannels);
 
 /** Scheduled posts */
 apiRouter.get("/scheduled-posts", getScheduledPosts);
-apiRouter.post("/scheduled-posts", upload.single("file"), createScheduledPost);
+apiRouter.post("/scheduled-posts", upload.array("file", 10), createScheduledPost);
 apiRouter.get("/scheduled-posts/:id", getScheduledPostById);
 apiRouter.delete("/scheduled-posts/:id", deleteScheduledPost);
 apiRouter.patch(
   "/scheduled-posts/:id",
-  upload.single("file"),
+  upload.array("file", 10),
   updateScheduledPost
 );
 
